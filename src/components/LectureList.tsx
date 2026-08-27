@@ -1,4 +1,4 @@
-﻿import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import { 
   Search, 
   CheckCircle2, 
@@ -66,40 +66,40 @@ export const LectureList: React.FC<LectureListProps> = ({
   }, [lectures, searchTerm, statusFilter, agencyFilter, sortOrder]);
 
   return (
-    <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
+    <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
       
       {/* Controls Header */}
-      <div className="p-3.5 sm:p-4 border-b border-slate-100 space-y-3">
+      <div className="p-3.5 sm:p-4 border-b border-gray-100 space-y-3">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
           <div>
-            <h3 className="text-sm sm:text-base font-bold text-slate-800">
+            <h3 className="text-sm sm:text-base font-bold text-gray-900">
               강의 목록 및 정산 내역
             </h3>
-            <p className="text-[11px] text-slate-400 mt-0.5">
+            <p className="text-[11px] text-gray-400 mt-0.5">
               총 {filteredLectures.length}개의 강의가 조회되었습니다
             </p>
           </div>
 
           {/* Search bar */}
           <div className="relative w-full sm:w-60">
-            <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+            <Search className="w-3.5 h-3.5 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
             <input
               type="text"
               placeholder="강의명, 업체명, 장소 검색..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-8 pr-3 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-400"
+              className="w-full pl-8 pr-3 py-1.5 text-xs bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder:text-gray-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
             />
           </div>
         </div>
 
         {/* Filters and Sort */}
         <div className="flex flex-wrap items-center gap-2 pt-0.5">
-          <div className="inline-flex p-0.5 bg-slate-100 rounded-xl text-xs font-semibold text-slate-600">
+          <div className="inline-flex p-0.5 bg-gray-100 rounded-xl text-xs font-semibold text-gray-600">
             <button
               onClick={() => setStatusFilter('all')}
               className={`px-2.5 py-1 rounded-lg transition-all ${
-                statusFilter === 'all' ? 'bg-white text-slate-900 shadow-2xs font-bold' : 'hover:text-slate-900'
+                statusFilter === 'all' ? 'bg-white text-gray-900 shadow-sm font-bold' : 'hover:text-gray-900'
               }`}
             >
               전체 ({lectures.length})
@@ -107,7 +107,7 @@ export const LectureList: React.FC<LectureListProps> = ({
             <button
               onClick={() => setStatusFilter('paid')}
               className={`px-2.5 py-1 rounded-lg transition-all ${
-                statusFilter === 'paid' ? 'bg-white text-teal-700 shadow-2xs font-bold' : 'hover:text-slate-900'
+                statusFilter === 'paid' ? 'bg-white text-emerald-700 shadow-sm font-bold' : 'hover:text-gray-900'
               }`}
             >
               입금 완료 ({lectures.filter(l => l.isPaid).length})
@@ -115,7 +115,7 @@ export const LectureList: React.FC<LectureListProps> = ({
             <button
               onClick={() => setStatusFilter('pending')}
               className={`px-2.5 py-1 rounded-lg transition-all ${
-                statusFilter === 'pending' ? 'bg-white text-amber-700 shadow-2xs font-bold' : 'hover:text-slate-900'
+                statusFilter === 'pending' ? 'bg-white text-amber-700 shadow-sm font-bold' : 'hover:text-gray-900'
               }`}
             >
               입금 대기 ({lectures.filter(l => !l.isPaid).length})
@@ -126,7 +126,7 @@ export const LectureList: React.FC<LectureListProps> = ({
             <select
               value={agencyFilter}
               onChange={(e) => setAgencyFilter(e.target.value)}
-              className="text-xs py-1 px-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-700 font-medium focus:outline-none"
+              className="text-xs py-1 px-2 bg-gray-50 border border-gray-200 rounded-lg text-gray-700 font-medium focus:outline-none focus:border-gray-300"
             >
               <option value="all">모든 업체</option>
               {agencies.map(agency => (
@@ -138,7 +138,7 @@ export const LectureList: React.FC<LectureListProps> = ({
           <select
             value={sortOrder}
             onChange={(e) => setSortOrder(e.target.value as any)}
-            className="text-xs py-1 px-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-700 font-medium ml-auto focus:outline-none"
+            className="text-xs py-1 px-2 bg-gray-50 border border-gray-200 rounded-lg text-gray-700 font-medium ml-auto focus:outline-none focus:border-gray-300"
           >
             <option value="date-desc">최신순</option>
             <option value="date-asc">오래된순</option>
@@ -151,15 +151,15 @@ export const LectureList: React.FC<LectureListProps> = ({
       {/* Content */}
       {filteredLectures.length === 0 ? (
         <div className="p-10 text-center">
-          <AlertCircle className="w-8 h-8 text-slate-300 mx-auto mb-2" />
-          <h4 className="text-xs font-bold text-slate-700">해당 조건의 강의가 없습니다</h4>
-          <p className="text-[11px] text-slate-400 mt-0.5">검색어나 필터를 변경해 보세요.</p>
+          <AlertCircle className="w-8 h-8 text-gray-300 mx-auto mb-2" />
+          <h4 className="text-xs font-bold text-gray-700">해당 조건의 강의가 없습니다</h4>
+          <p className="text-[11px] text-gray-400 mt-0.5">검색어나 필터를 변경해 보세요.</p>
         </div>
       ) : (
-        <div className="divide-y divide-slate-100">
+        <div className="divide-y divide-gray-100">
           
           {/* Desktop Header */}
-          <div className="hidden md:grid grid-cols-12 gap-4 px-5 py-2.5 bg-slate-50/60 text-xs font-semibold text-slate-500">
+          <div className="hidden md:grid grid-cols-12 gap-4 px-5 py-2.5 bg-gray-50 text-xs font-semibold text-gray-500">
             <div className="col-span-2">일시 / 시간</div>
             <div className="col-span-4">강의명 / 위탁업체</div>
             <div className="col-span-2">진행 형태 / 장소</div>
@@ -174,17 +174,17 @@ export const LectureList: React.FC<LectureListProps> = ({
             return (
               <div
                 key={lec.id}
-                className="p-3.5 sm:px-5 sm:py-3.5 hover:bg-slate-50/70 transition-colors"
+                className="p-3.5 sm:px-5 sm:py-3.5 hover:bg-gray-50 transition-colors"
               >
                 {/* Desktop Layout */}
                 <div className="hidden md:grid grid-cols-12 gap-4 items-center">
                   
                   {/* Date */}
                   <div className="col-span-2 space-y-0.5">
-                    <div className="text-xs font-bold text-slate-800">
+                    <div className="text-xs font-bold text-gray-900">
                       {lec.date}
                     </div>
-                    <div className="text-[11px] text-slate-400">
+                    <div className="text-[11px] text-gray-400">
                       {lec.startTime}~{lec.endTime} ({lec.durationHours}h)
                     </div>
                   </div>
@@ -193,17 +193,17 @@ export const LectureList: React.FC<LectureListProps> = ({
                   <div className="col-span-4 space-y-1">
                     <div>
                       <span
-                        className="px-2 py-0.5 rounded text-[10px] font-bold text-white shadow-2xs"
+                        className="px-2 py-0.5 rounded text-[10px] font-bold text-white shadow-none"
                         style={{ backgroundColor: agencyColor }}
                       >
                         {lec.agency || '직접 출강'}
                       </span>
                     </div>
-                    <div className="text-xs sm:text-sm font-bold text-slate-800 leading-snug">
+                    <div className="text-xs sm:text-sm font-bold text-gray-900 leading-snug">
                       {lec.title}
                     </div>
                     {lec.notes && (
-                      <div className="text-[11px] text-slate-400 truncate max-w-sm">
+                      <div className="text-[11px] text-gray-400 truncate max-w-sm">
                         메모: {lec.notes}
                       </div>
                     )}
@@ -211,19 +211,19 @@ export const LectureList: React.FC<LectureListProps> = ({
 
                   {/* Format */}
                   <div className="col-span-2 space-y-1 text-xs">
-                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-slate-100 text-slate-600 font-medium text-[11px]">
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-gray-100 text-gray-600 font-medium text-[11px]">
                       {lec.locationType === 'online' ? (
                         <>
-                          <Laptop className="w-3 h-3 text-sky-500" /> 온라인
+                          <Laptop className="w-3 h-3 text-blue-600" /> 온라인
                         </>
                       ) : (
                         <>
-                          <Building2 className="w-3 h-3 text-teal-600" /> 오프라인
+                          <Building2 className="w-3 h-3 text-gray-600" /> 오프라인
                         </>
                       )}
                     </span>
                     {lec.locationDetail && (
-                      <div className="text-[11px] text-slate-500 truncate" title={lec.locationDetail}>
+                      <div className="text-[11px] text-gray-500 truncate" title={lec.locationDetail}>
                         {lec.locationDetail}
                       </div>
                     )}
@@ -231,10 +231,10 @@ export const LectureList: React.FC<LectureListProps> = ({
 
                   {/* Fee */}
                   <div className="col-span-2 text-right">
-                    <div className="text-sm sm:text-base font-extrabold text-slate-800 tracking-tight">
+                    <div className="text-sm sm:text-base font-extrabold text-gray-900 tracking-tight">
                       ₩ {lec.totalFee.toLocaleString('ko-KR')}
                     </div>
-                    <div className="text-[10px] text-slate-400">
+                    <div className="text-[10px] text-gray-400">
                       시급 약 ₩{lec.durationHours > 0 ? Math.round(lec.totalFee / lec.durationHours).toLocaleString('ko-KR') : 0}
                     </div>
                   </div>
@@ -245,8 +245,8 @@ export const LectureList: React.FC<LectureListProps> = ({
                       onClick={() => onTogglePaid(lec.id)}
                       className={`px-2.5 py-1 rounded-xl text-xs font-semibold flex items-center gap-1 border transition-all ${
                         lec.isPaid
-                          ? 'bg-emerald-50 text-emerald-700 border-emerald-200/80 hover:bg-emerald-100'
-                          : 'bg-amber-50 text-amber-700 border-amber-200/80 hover:bg-amber-100'
+                          ? 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100'
+                          : 'bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100'
                       }`}
                       title="클릭하여 입금 상태 변경"
                     >
@@ -266,14 +266,14 @@ export const LectureList: React.FC<LectureListProps> = ({
                     <button
                       onClick={() => onEdit(lec)}
                       title="수정"
-                      className="p-1.5 text-slate-400 hover:text-sky-600 hover:bg-sky-50 rounded-lg transition-colors"
+                      className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
                     >
                       <Edit3 className="w-3.5 h-3.5" />
                     </button>
                     <button
                       onClick={() => onDelete(lec.id)}
                       title="삭제"
-                      className="p-1.5 text-slate-400 hover:text-rose-500 hover:bg-rose-50 rounded-lg transition-colors"
+                      className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
                     </button>
@@ -286,28 +286,28 @@ export const LectureList: React.FC<LectureListProps> = ({
                   <div className="flex items-start justify-between gap-2">
                     <div className="space-y-1 min-w-0">
                       <span
-                        className="px-2 py-0.5 rounded text-[10px] font-bold text-white inline-block shadow-2xs"
+                        className="px-2 py-0.5 rounded text-[10px] font-bold text-white inline-block shadow-none"
                         style={{ backgroundColor: agencyColor }}
                       >
                         {lec.agency || '직접 출강'}
                       </span>
-                      <h4 className="text-xs sm:text-sm font-bold text-slate-800 leading-snug">
+                      <h4 className="text-xs sm:text-sm font-bold text-gray-900 leading-snug">
                         {lec.title}
                       </h4>
                     </div>
 
                     <div className="text-right shrink-0">
-                      <div className="text-sm font-extrabold text-slate-800">
+                      <div className="text-sm font-extrabold text-gray-900">
                         ₩ {lec.totalFee.toLocaleString('ko-KR')}
                       </div>
                     </div>
                   </div>
 
-                  <div className="flex items-center justify-between text-[11px] text-slate-500 pt-1.5 border-t border-slate-100">
+                  <div className="flex items-center justify-between text-[11px] text-gray-500 pt-1.5 border-t border-gray-100">
                     <div>
                       {lec.date} · {lec.startTime}~{lec.endTime} ({lec.durationHours}h)
                     </div>
-                    <div className="text-slate-600">
+                    <div className="text-gray-600">
                       {lec.locationType === 'online' ? '온라인' : '오프라인'}
                     </div>
                   </div>
@@ -328,13 +328,13 @@ export const LectureList: React.FC<LectureListProps> = ({
                     <div className="flex items-center gap-1">
                       <button
                         onClick={() => onEdit(lec)}
-                        className="p-1.5 text-slate-600 hover:text-sky-600 bg-slate-100 rounded-lg text-xs font-medium flex items-center gap-0.5"
+                        className="p-1.5 text-gray-600 hover:text-blue-600 bg-gray-100 hover:bg-gray-200 rounded-lg text-xs font-medium flex items-center gap-0.5"
                       >
                         <Edit3 className="w-3 h-3" /> 수정
                       </button>
                       <button
                         onClick={() => onDelete(lec.id)}
-                        className="p-1.5 text-rose-500 hover:bg-rose-50 bg-slate-100 rounded-lg text-xs font-medium"
+                        className="p-1.5 text-red-600 hover:bg-red-50 bg-gray-100 rounded-lg text-xs font-medium"
                       >
                         <Trash2 className="w-3 h-3" />
                       </button>

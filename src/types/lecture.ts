@@ -39,12 +39,11 @@ export interface MonthlySummary {
 }
 
 export interface GoogleCalendarConfig {
-  userEmail?: string;
-  clientId?: string;
-  apiKey?: string;
+  clientId: string;
   calendarId: string;
   isConnected: boolean;
   autoSync: boolean;
   lastSyncedAt?: string;
+  userEmail?: string;
+  accessToken?: string;
 }
-

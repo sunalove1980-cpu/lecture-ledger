@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import { 
   format, 
   startOfMonth, 
@@ -46,36 +46,36 @@ export const LectureCalendar: React.FC<LectureCalendarProps> = ({
   const selectedDayLectures = selectedDay ? getLecturesForDay(selectedDay) : [];
 
   return (
-    <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
+    <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
       
       {/* Calendar Header */}
-      <div className="p-3.5 sm:p-4 border-b border-slate-100 flex items-center justify-between">
+      <div className="p-3.5 sm:p-4 border-b border-gray-100 flex items-center justify-between">
         <div>
-          <h3 className="text-sm sm:text-base font-bold text-slate-800">
+          <h3 className="text-sm sm:text-base font-bold text-gray-900">
             강의 캘린더
           </h3>
-          <p className="text-[11px] text-slate-400 mt-0.5">
+          <p className="text-[11px] text-gray-400 mt-0.5">
             날짜를 클릭하면 해당 일자의 강의를 확인하거나 새 일정을 등록할 수 있습니다.
           </p>
         </div>
-        <div className="flex items-center gap-2.5 text-[11px] text-slate-500 font-medium">
+        <div className="flex items-center gap-2.5 text-[11px] text-gray-500 font-medium">
           <span className="flex items-center gap-1">
-            <span className="w-2 h-2 rounded-full bg-emerald-400"></span>
+            <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
             입금완료
           </span>
           <span className="flex items-center gap-1">
-            <span className="w-2 h-2 rounded-full bg-amber-300"></span>
+            <span className="w-2 h-2 rounded-full bg-amber-400"></span>
             입금대기
           </span>
         </div>
       </div>
 
       {/* Weekday Row */}
-      <div className="grid grid-cols-7 border-b border-slate-100 bg-slate-50/60 text-center text-xs font-semibold text-slate-500">
+      <div className="grid grid-cols-7 border-b border-gray-100 bg-gray-50 text-center text-xs font-semibold text-gray-500">
         {weekDays.map((day, idx) => (
           <div
             key={day}
-            className={`py-2 ${idx === 0 ? 'text-rose-400 font-bold' : idx === 6 ? 'text-sky-500 font-bold' : ''}`}
+            className={`py-2 ${idx === 0 ? 'text-red-500 font-bold' : idx === 6 ? 'text-blue-600 font-bold' : ''}`}
           >
             {day}
           </div>
@@ -83,7 +83,7 @@ export const LectureCalendar: React.FC<LectureCalendarProps> = ({
       </div>
 
       {/* Days Grid */}
-      <div className="grid grid-cols-7 auto-rows-fr divide-x divide-y divide-slate-100">
+      <div className="grid grid-cols-7 auto-rows-fr divide-x divide-y divide-gray-100">
         {days.map((day, dayIdx) => {
           const dayLectures = getLecturesForDay(day);
           const isCurrMonth = isSameMonth(day, monthStart);
@@ -97,29 +97,29 @@ export const LectureCalendar: React.FC<LectureCalendarProps> = ({
               key={dayIdx}
               onClick={() => setSelectedDay(day)}
               className={`min-h-[85px] sm:min-h-[105px] p-1.5 transition-all cursor-pointer relative group flex flex-col justify-between ${
-                !isCurrMonth ? 'bg-slate-50/40 text-slate-300' : 'bg-white hover:bg-sky-50/20'
-              } ${isSelected ? 'ring-2 ring-sky-400 ring-inset bg-sky-50/30' : ''}`}
+                !isCurrMonth ? 'bg-gray-50 text-gray-300' : 'bg-white hover:bg-gray-50'
+              } ${isSelected ? 'ring-2 ring-blue-500 ring-inset bg-blue-50/40' : ''}`}
             >
               {/* Day Number and Quick Add */}
               <div className="flex items-center justify-between">
                 <span
                   className={`text-xs font-bold w-5 h-5 sm:w-6 sm:h-6 flex items-center justify-center rounded-full ${
                     isTodayDate
-                      ? 'bg-sky-500 text-white shadow-xs'
+                      ? 'bg-blue-600 text-white shadow-sm'
                       : isCurrMonth
                       ? day.getDay() === 0
-                        ? 'text-rose-500'
+                        ? 'text-red-500'
                         : day.getDay() === 6
-                        ? 'text-sky-500'
-                        : 'text-slate-700'
-                      : 'text-slate-300'
+                        ? 'text-blue-600'
+                        : 'text-gray-700'
+                      : 'text-gray-300'
                   }`}
                 >
                   {format(day, 'd')}
                 </span>
 
                 {dayLectures.length > 0 && isCurrMonth && (
-                  <span className="hidden lg:inline-block text-[10px] font-bold text-slate-600 bg-slate-100 px-1 py-0.5 rounded">
+                  <span className="hidden lg:inline-block text-[10px] font-bold text-gray-600 bg-gray-100 px-1 py-0.5 rounded">
                     ₩{(dayTotalFee / 10000).toFixed(0)}만
                   </span>
                 )}
@@ -131,7 +131,7 @@ export const LectureCalendar: React.FC<LectureCalendarProps> = ({
                       onAddNewAtDate(dayStr);
                     }}
                     title="이 날짜에 강의 추가"
-                    className="opacity-0 group-hover:opacity-100 p-0.5 text-slate-400 hover:text-sky-600 rounded transition-opacity"
+                    className="opacity-0 group-hover:opacity-100 p-0.5 text-gray-400 hover:text-blue-600 rounded transition-opacity"
                   >
                     <Plus className="w-3.5 h-3.5" />
                   </button>
@@ -149,7 +149,7 @@ export const LectureCalendar: React.FC<LectureCalendarProps> = ({
                         e.stopPropagation();
                         onSelectLecture(lec);
                       }}
-                      className="px-1.5 py-0.5 rounded-md text-[10px] sm:text-[11px] font-medium text-slate-700 truncate border transition-all hover:scale-[1.01] flex items-center gap-1 shadow-2xs"
+                      className="px-1.5 py-0.5 rounded-md text-[10px] sm:text-[11px] font-medium text-gray-700 truncate border transition-all hover:scale-[1.01] flex items-center gap-1 shadow-none"
                       style={{
                         backgroundColor: `${agencyColor}14`,
                         borderColor: `${agencyColor}30`,
@@ -167,7 +167,7 @@ export const LectureCalendar: React.FC<LectureCalendarProps> = ({
                 })}
 
                 {dayLectures.length > 2 && (
-                  <div className="text-[10px] font-semibold text-sky-600 px-1">
+                  <div className="text-[10px] font-semibold text-blue-600 px-1">
                     +{dayLectures.length - 2}개 더보기
                   </div>
                 )}
@@ -190,19 +190,19 @@ export const LectureCalendar: React.FC<LectureCalendarProps> = ({
 
       {/* Selected Day Panel */}
       {selectedDay && (
-        <div className="p-3.5 sm:p-4 bg-slate-50/70 border-t border-slate-200 animate-in fade-in duration-150">
+        <div className="p-3.5 sm:p-4 bg-gray-50 border-t border-gray-200 animate-in fade-in duration-150">
           <div className="flex items-center justify-between mb-2.5">
             <div className="flex items-center gap-2">
-              <h4 className="text-xs sm:text-sm font-bold text-slate-800">
+              <h4 className="text-xs sm:text-sm font-bold text-gray-900">
                 {format(selectedDay, 'yyyy년 M월 d일 (EEEE)', { locale: ko })} 강의 일정
               </h4>
-              <span className="text-[11px] text-slate-400 font-medium">
+              <span className="text-[11px] text-gray-400 font-medium">
                 ({selectedDayLectures.length}건)
               </span>
             </div>
             <button
               onClick={() => onAddNewAtDate(format(selectedDay, 'yyyy-MM-dd'))}
-              className="flex items-center gap-1 text-[11px] font-bold text-sky-700 hover:text-sky-800 bg-white px-2.5 py-1 rounded-lg border border-sky-200 shadow-2xs hover:bg-sky-50"
+              className="flex items-center gap-1 text-[11px] font-bold text-blue-600 hover:text-blue-700 bg-white px-2.5 py-1 rounded-lg border border-gray-200 shadow-sm hover:bg-gray-50"
             >
               <Plus className="w-3 h-3" />
               이 날짜에 강의 추가
@@ -210,7 +210,7 @@ export const LectureCalendar: React.FC<LectureCalendarProps> = ({
           </div>
 
           {selectedDayLectures.length === 0 ? (
-            <p className="text-[11px] text-slate-400 py-1">
+            <p className="text-[11px] text-gray-400 py-1">
               등록된 강의 일정이 없습니다.
             </p>
           ) : (
@@ -221,11 +221,11 @@ export const LectureCalendar: React.FC<LectureCalendarProps> = ({
                   <div
                     key={lec.id}
                     onClick={() => onSelectLecture(lec)}
-                    className="p-3 bg-white rounded-xl border border-slate-200/80 hover:border-sky-300 shadow-2xs hover:shadow-xs transition-all cursor-pointer space-y-1.5"
+                    className="p-3 bg-white rounded-xl border border-gray-200 hover:border-blue-300 shadow-sm transition-all cursor-pointer space-y-1.5"
                   >
                     <div className="flex items-center justify-between">
                       <span
-                        className="px-2 py-0.5 rounded text-[11px] font-bold text-white shadow-2xs"
+                        className="px-2 py-0.5 rounded text-[11px] font-bold text-white shadow-none"
                         style={{ backgroundColor: agencyColor }}
                       >
                         {lec.agency || '직접 출강'}
@@ -245,13 +245,13 @@ export const LectureCalendar: React.FC<LectureCalendarProps> = ({
                       </span>
                     </div>
 
-                    <div className="font-bold text-xs sm:text-sm text-slate-800 leading-snug line-clamp-2">
+                    <div className="font-bold text-xs sm:text-sm text-gray-900 leading-snug line-clamp-2">
                       {lec.title}
                     </div>
 
-                    <div className="flex items-center justify-between text-[11px] text-slate-500 pt-1 border-t border-slate-100">
+                    <div className="flex items-center justify-between text-[11px] text-gray-500 pt-1 border-t border-gray-100">
                       <span>{lec.startTime}~{lec.endTime} ({lec.durationHours}h)</span>
-                      <span className="font-bold text-sky-700">
+                      <span className="font-bold text-blue-600">
                         ₩ {lec.totalFee.toLocaleString('ko-KR')}
                       </span>
                     </div>

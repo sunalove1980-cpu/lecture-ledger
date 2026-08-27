@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   X, 
   Calendar, 
@@ -146,29 +146,29 @@ export const LectureModal: React.FC<LectureModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-3 sm:p-5 animate-in fade-in duration-150">
+    <div className="fixed inset-0 z-50 overflow-y-auto bg-gray-900/40 backdrop-blur-xs flex items-center justify-center p-3 sm:p-5 animate-in fade-in duration-150">
       <div 
-        className="bg-white rounded-3xl max-w-lg w-full shadow-2xl border border-slate-200/80 overflow-hidden transform transition-all"
+        className="bg-white rounded-3xl max-w-lg w-full shadow-2xl border border-gray-200 overflow-hidden transform transition-all"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="px-5 py-3.5 border-b border-slate-100 flex items-center justify-between bg-slate-50/60">
+        <div className="px-5 py-3.5 border-b border-gray-100 flex items-center justify-between bg-gray-50">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-xl bg-sky-50 text-sky-600 flex items-center justify-center">
+            <div className="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
               <Calendar className="w-4 h-4" />
             </div>
             <div>
-              <h3 className="text-sm sm:text-base font-bold text-slate-800">
+              <h3 className="text-sm sm:text-base font-bold text-gray-900">
                 {initialLecture ? '강의 일정 수정' : '새 강의 일정 등록'}
               </h3>
-              <p className="text-[11px] text-slate-400">
+              <p className="text-[11px] text-gray-400">
                 일정 및 강의료를 입력하세요 (저장 시 자동 계산 반영)
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-full transition-colors"
+            className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors"
           >
             <X className="w-4 h-4" />
           </button>
@@ -179,8 +179,8 @@ export const LectureModal: React.FC<LectureModalProps> = ({
           
           {/* Title */}
           <div>
-            <label className="block text-xs font-bold text-slate-700 mb-1">
-              강의명 / 주제 <span className="text-rose-500">*</span>
+            <label className="block text-xs font-bold text-gray-700 mb-1">
+              강의명 / 주제 <span className="text-red-500">*</span>
             </label>
             <input
               type="text"
@@ -188,13 +188,13 @@ export const LectureModal: React.FC<LectureModalProps> = ({
               placeholder="예: 실무 생성형 AI 비즈니스 프롬프트 엔지니어링"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm font-semibold text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-sky-400/20 focus:border-sky-400"
+              className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs sm:text-sm font-semibold text-gray-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
             />
           </div>
 
           {/* Agency */}
           <div>
-            <label className="block text-xs font-bold text-slate-700 mb-1">
+            <label className="block text-xs font-bold text-gray-700 mb-1">
               위탁 / 중개 업체명 (기관)
             </label>
             <input
@@ -202,7 +202,7 @@ export const LectureModal: React.FC<LectureModalProps> = ({
               placeholder="예: 패스트캠퍼스, 러닝스푼즈, 기업 직접 출강"
               value={agency}
               onChange={(e) => setAgency(e.target.value)}
-              className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm font-semibold text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-sky-400/20 focus:border-sky-400 mb-1.5"
+              className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs sm:text-sm font-semibold text-gray-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 mb-1.5"
             />
             {/* Chips */}
             <div className="flex flex-wrap gap-1">
@@ -213,8 +213,8 @@ export const LectureModal: React.FC<LectureModalProps> = ({
                   onClick={() => setAgency(popAgency)}
                   className={`text-[10px] px-2 py-0.5 rounded-lg border font-semibold transition-all ${
                     agency === popAgency
-                      ? 'bg-sky-500 text-white border-sky-500 shadow-2xs'
-                      : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'
+                      ? 'bg-gray-900 text-white border-gray-900 shadow-sm'
+                      : 'bg-gray-50 text-gray-600 border-gray-200 hover:bg-gray-100'
                   }`}
                 >
                   {popAgency}
@@ -226,53 +226,55 @@ export const LectureModal: React.FC<LectureModalProps> = ({
           {/* Date & Time */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
             <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1">
-                강의 날짜 <span className="text-rose-500">*</span>
+              <label className="block text-xs font-bold text-gray-700 mb-1">
+                강의 날짜 <span className="text-red-500">*</span>
               </label>
               <input
                 type="date"
                 required
                 value={date}
                 onChange={(e) => setDate(e.target.value)}
-                className="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 focus:bg-white focus:outline-none"
+                className="w-full px-2.5 py-1.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-semibold text-gray-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
               />
             </div>
             <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1">
+              <label className="block text-xs font-bold text-gray-700 mb-1">
                 시작 시간
               </label>
               <input
                 type="time"
                 value={startTime}
                 onChange={(e) => handleStartTimeChange(e.target.value)}
-                className="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 focus:bg-white focus:outline-none"
+                className="w-full px-2.5 py-1.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-semibold text-gray-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
               />
             </div>
             <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1">
+              <label className="block text-xs font-bold text-gray-700 mb-1">
                 종료 시간
               </label>
               <input
                 type="time"
                 value={endTime}
                 onChange={(e) => handleEndTimeChange(e.target.value)}
-                className="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 focus:bg-white focus:outline-none"
+                className="w-full px-2.5 py-1.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-semibold text-gray-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
               />
             </div>
           </div>
 
           {/* Fee Section */}
-          <div className="p-3.5 bg-sky-50/60 rounded-2xl border border-sky-100/80 space-y-2.5">
+          <div className="p-3.5 bg-gray-50 rounded-2xl border border-gray-200 space-y-2.5">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-sky-900 flex items-center gap-1">
-                <Coins className="w-3.5 h-3.5 text-sky-600" />
+              <span className="text-xs font-bold text-gray-900 flex items-center gap-1">
+                <Coins className="w-3.5 h-3.5 text-blue-600" />
                 강의 시간 및 강의료
               </span>
-              <div className="flex items-center gap-1 bg-white p-0.5 rounded-lg border border-sky-100 text-[11px] font-semibold">
+              <div className="flex items-center gap-1 bg-white p-0.5 rounded-lg border border-gray-200 text-[11px] font-semibold">
                 <button
                   type="button"
                   onClick={() => setFeeMode('total')}
-                  className={`px-2 py-0.5 rounded ${feeMode === 'total' ? 'bg-sky-500 text-white' : 'text-slate-600'}`}
+                  className={`px-2 py-0.5 rounded transition-all ${
+                    feeMode === 'total' ? 'bg-gray-900 text-white shadow-sm' : 'text-gray-600 hover:text-gray-900'
+                  }`}
                 >
                   총액 직접입력
                 </button>
@@ -282,7 +284,9 @@ export const LectureModal: React.FC<LectureModalProps> = ({
                     setFeeMode('hourly');
                     setTotalFee(Math.round(hourlyRate * durationHours));
                   }}
-                  className={`px-2 py-0.5 rounded ${feeMode === 'hourly' ? 'bg-sky-500 text-white' : 'text-slate-600'}`}
+                  className={`px-2 py-0.5 rounded transition-all ${
+                    feeMode === 'hourly' ? 'bg-gray-900 text-white shadow-sm' : 'text-gray-600 hover:text-gray-900'
+                  }`}
                 >
                   시급 계산
                 </button>
@@ -291,7 +295,7 @@ export const LectureModal: React.FC<LectureModalProps> = ({
 
             <div className="grid grid-cols-2 gap-2.5">
               <div>
-                <label className="block text-[11px] font-semibold text-slate-600 mb-0.5">
+                <label className="block text-[11px] font-semibold text-gray-600 mb-0.5">
                   총 강의 시간 (시간)
                 </label>
                 <input
@@ -304,13 +308,13 @@ export const LectureModal: React.FC<LectureModalProps> = ({
                     setDurationHours(d);
                     if (feeMode === 'hourly') setTotalFee(Math.round(hourlyRate * d));
                   }}
-                  className="w-full px-2.5 py-1.5 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-900"
+                  className="w-full px-2.5 py-1.5 bg-white border border-gray-200 rounded-xl text-xs font-bold text-gray-900 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                 />
               </div>
 
               {feeMode === 'hourly' ? (
                 <div>
-                  <label className="block text-[11px] font-semibold text-slate-600 mb-0.5">
+                  <label className="block text-[11px] font-semibold text-gray-600 mb-0.5">
                     시간당 단가 (원)
                   </label>
                   <input
@@ -318,12 +322,12 @@ export const LectureModal: React.FC<LectureModalProps> = ({
                     step="10000"
                     value={hourlyRate}
                     onChange={(e) => handleHourlyRateChange(Number(e.target.value))}
-                    className="w-full px-2.5 py-1.5 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-900"
+                    className="w-full px-2.5 py-1.5 bg-white border border-gray-200 rounded-xl text-xs font-bold text-gray-900 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                   />
                 </div>
               ) : (
                 <div>
-                  <label className="block text-[11px] font-semibold text-slate-600 mb-0.5">
+                  <label className="block text-[11px] font-semibold text-gray-600 mb-0.5">
                     총 강의료 (원)
                   </label>
                   <input
@@ -331,20 +335,20 @@ export const LectureModal: React.FC<LectureModalProps> = ({
                     step="10000"
                     value={totalFee}
                     onChange={(e) => setTotalFee(Number(e.target.value))}
-                    className="w-full px-2.5 py-1.5 bg-white border border-slate-200 rounded-xl text-xs font-bold text-sky-700"
+                    className="w-full px-2.5 py-1.5 bg-white border border-gray-200 rounded-xl text-xs font-bold text-blue-600 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                   />
                 </div>
               )}
             </div>
 
-            <div className="text-right text-xs font-bold text-sky-900 pt-0.5">
+            <div className="text-right text-xs font-bold text-gray-900 pt-0.5">
               계산된 강의료: ₩ {Number(totalFee).toLocaleString('ko-KR')}
             </div>
           </div>
 
           {/* Location */}
           <div className="space-y-1.5">
-            <label className="block text-xs font-bold text-slate-700">
+            <label className="block text-xs font-bold text-gray-700">
               진행 형태 및 장소
             </label>
             <div className="grid grid-cols-2 gap-2">
@@ -353,8 +357,8 @@ export const LectureModal: React.FC<LectureModalProps> = ({
                 onClick={() => setLocationType('online')}
                 className={`py-1.5 rounded-xl text-xs font-bold flex items-center justify-center gap-1 border transition-all ${
                   locationType === 'online'
-                    ? 'bg-sky-500 text-white border-sky-500 shadow-2xs'
-                    : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'
+                    ? 'bg-gray-900 text-white border-gray-900 shadow-sm'
+                    : 'bg-gray-50 text-gray-600 border-gray-200 hover:bg-gray-100'
                 }`}
               >
                 <Laptop className="w-3.5 h-3.5" /> 온라인 (Zoom / 웨비나)
@@ -364,8 +368,8 @@ export const LectureModal: React.FC<LectureModalProps> = ({
                 onClick={() => setLocationType('offline')}
                 className={`py-1.5 rounded-xl text-xs font-bold flex items-center justify-center gap-1 border transition-all ${
                   locationType === 'offline'
-                    ? 'bg-sky-500 text-white border-sky-500 shadow-2xs'
-                    : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'
+                    ? 'bg-gray-900 text-white border-gray-900 shadow-sm'
+                    : 'bg-gray-50 text-gray-600 border-gray-200 hover:bg-gray-100'
                 }`}
               >
                 <Building2 className="w-3.5 h-3.5" /> 오프라인 (교육장)
@@ -376,20 +380,20 @@ export const LectureModal: React.FC<LectureModalProps> = ({
               placeholder={locationType === 'online' ? 'Zoom 회의 링크 또는 온라인 강의실 주소' : '교육장 주소 및 강의실 호수'}
               value={locationDetail}
               onChange={(e) => setLocationDetail(e.target.value)}
-              className="w-full px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-800 focus:bg-white focus:outline-none"
+              className="w-full px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-medium text-gray-900 focus:bg-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
             />
           </div>
 
           {/* Payment Status & Sync Options */}
-          <div className="pt-1.5 border-t border-slate-100 space-y-2">
+          <div className="pt-1.5 border-t border-gray-100 space-y-2">
             <label className="flex items-center gap-2 cursor-pointer select-none">
               <input
                 type="checkbox"
                 checked={isPaid}
                 onChange={(e) => setIsPaid(e.target.checked)}
-                className="w-4 h-4 text-sky-500 rounded border-slate-300 focus:ring-sky-400"
+                className="w-4 h-4 text-emerald-600 rounded border-gray-300 focus:ring-emerald-500"
               />
-              <span className="text-xs font-bold text-slate-700">
+              <span className="text-xs font-bold text-gray-700">
                 입금 완료된 강의입니다 (입금 완료 처리)
               </span>
             </label>
@@ -400,10 +404,10 @@ export const LectureModal: React.FC<LectureModalProps> = ({
                   type="checkbox"
                   checked={syncToGCal}
                   onChange={(e) => setSyncToGCal(e.target.checked)}
-                  className="w-4 h-4 text-teal-600 rounded border-slate-300 focus:ring-teal-500"
+                  className="w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
                 />
-                <span className="text-xs font-semibold text-teal-700 flex items-center gap-1">
-                  <RefreshCw className="w-3 h-3" /> 구글 캘린더에도 이 일정을 즉시 등록합니다
+                <span className="text-xs font-semibold text-gray-700 flex items-center gap-1">
+                  <RefreshCw className="w-3 h-3 text-blue-600" /> 구글 캘린더에도 이 일정을 즉시 등록합니다
                 </span>
               </label>
             )}
@@ -411,7 +415,7 @@ export const LectureModal: React.FC<LectureModalProps> = ({
 
           {/* Notes */}
           <div>
-            <label className="block text-xs font-bold text-slate-700 mb-0.5">
+            <label className="block text-xs font-bold text-gray-700 mb-0.5">
               메모
             </label>
             <textarea
@@ -419,22 +423,22 @@ export const LectureModal: React.FC<LectureModalProps> = ({
               placeholder="담당자 연락처, 강의 준비물 등을 기록하세요"
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              className="w-full px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-800 focus:bg-white focus:outline-none resize-none"
+              className="w-full px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-medium text-gray-900 focus:bg-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 resize-none"
             />
           </div>
 
           {/* Buttons */}
-          <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
+          <div className="flex items-center justify-end gap-2 pt-2 border-t border-gray-100">
             <button
               type="button"
               onClick={onClose}
-              className="px-3.5 py-1.5 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-xl"
+              className="px-3.5 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-100 rounded-xl"
             >
               취소
             </button>
             <button
               type="submit"
-              className="px-4 py-1.5 bg-sky-500 hover:bg-sky-600 text-white text-xs font-bold rounded-xl shadow-xs transition-all active:scale-95 flex items-center gap-1"
+              className="px-4 py-1.5 bg-gray-900 hover:bg-gray-800 text-white text-xs font-bold rounded-xl shadow-sm transition-all active:scale-95 flex items-center gap-1"
             >
               <Check className="w-3.5 h-3.5 stroke-[2.5]" />
               {initialLecture ? '수정 완료' : '강의 등록'}
