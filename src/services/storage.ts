@@ -128,18 +128,34 @@ export function clearAllLectures(): void {
 // ─── Google Config ────────────────────────────────────
 
 export function getGoogleConfig(): GoogleCalendarConfig {
-  const raw = localStorage.getItem(GOOGLE_CONFIG_KEY);
-  if (!raw) {
+  const defaultConfig: GoogleCalendarConfig = {
+    clientId: '',
+    calendarId: 'primary',
+    isConnected: false,
+    autoSync: true,
+  };
+
+  try {
+    const raw = localStorage.getItem(GOOGLE_CONFIG_KEY);
+    if (!raw) return defaultConfig;
+
+    const parsed = JSON.parse(raw) as Partial<GoogleCalendarConfig>;
     return {
-      clientId: '',
-      calendarId: 'primary',
-      isConnected: false,
-      autoSync: true,
+      ...defaultConfig,
+      ...parsed,
+      clientId: typeof parsed.clientId === 'string' ? parsed.clientId : '',
+      calendarId: typeof parsed.calendarId === 'string' && parsed.calendarId ? parsed.calendarId : 'primary',
+      // OAuth access tokens are short-lived and must never be restored as a session.
+      accessToken: undefined,
     };
+  } catch (err) {
+    console.error('Failed to parse Google config from localStorage:', err);
+    localStorage.removeItem(GOOGLE_CONFIG_KEY);
+    return defaultConfig;
   }
-  return JSON.parse(raw);
 }
 
 export function saveGoogleConfig(config: GoogleCalendarConfig): void {
-  localStorage.setItem(GOOGLE_CONFIG_KEY, JSON.stringify(config));
+  const { accessToken: _accessToken, ...safeConfig } = config;
+  localStorage.setItem(GOOGLE_CONFIG_KEY, JSON.stringify(safeConfig));
 }

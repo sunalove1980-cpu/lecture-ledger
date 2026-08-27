@@ -93,7 +93,6 @@ export const GoogleSyncModal: React.FC<GoogleSyncModalProps> = ({
         isConnected: true,
         autoSync: true,
         userEmail: email,
-        accessToken,
         lastSyncedAt: new Date().toISOString(),
       };
       onSaveConfig(newConfig);
@@ -247,7 +246,7 @@ export const GoogleSyncModal: React.FC<GoogleSyncModalProps> = ({
                   <code className="bg-gray-200 px-1 rounded text-xs">http://localhost:5173</code>
                   <br />
                   <code className="bg-gray-200 px-1 rounded text-xs">
-                    https://temporary-prompt-antimony-u8yxtx4.vercel.app
+                    {window.location.origin}
                   </code>
                 </li>
                 <li>

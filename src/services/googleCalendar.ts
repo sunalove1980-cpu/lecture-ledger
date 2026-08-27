@@ -21,6 +21,24 @@ declare global {
 let tokenClient: any = null;
 let currentAccessToken: string | null = null;
 
+function waitForGoogleIdentityServices(timeoutMs = 10000): Promise<void> {
+  return new Promise((resolve, reject) => {
+    const startedAt = Date.now();
+    const check = () => {
+      if (window.google?.accounts?.oauth2) {
+        resolve();
+        return;
+      }
+      if (Date.now() - startedAt >= timeoutMs) {
+        reject(new Error('Google 로그인 서비스를 불러오지 못했습니다. 네트워크 연결이나 광고 차단 설정을 확인해 주세요.'));
+        return;
+      }
+      window.setTimeout(check, 100);
+    };
+    check();
+  });
+}
+
 // ─── GIS 스크립트 로드 ───────────────────────────────
 
 export function loadGoogleIdentityServices(): Promise<void> {
@@ -31,15 +49,14 @@ export function loadGoogleIdentityServices(): Promise<void> {
     }
     const existing = document.querySelector('script[src*="accounts.google.com/gsi/client"]');
     if (existing) {
-      existing.addEventListener('load', () => resolve());
-      if (window.google?.accounts?.oauth2) resolve();
+      waitForGoogleIdentityServices().then(resolve, reject);
       return;
     }
     const script = document.createElement('script');
     script.src = 'https://accounts.google.com/gsi/client';
     script.async = true;
     script.defer = true;
-    script.onload = () => resolve();
+    script.onload = () => waitForGoogleIdentityServices().then(resolve, reject);
     script.onerror = () => reject(new Error('Google Identity Services 스크립트 로드 실패'));
     document.head.appendChild(script);
   });
@@ -49,10 +66,13 @@ export function loadGoogleIdentityServices(): Promise<void> {
 
 export async function initTokenClient(clientId: string): Promise<void> {
   await loadGoogleIdentityServices();
+  if (!window.google?.accounts?.oauth2) {
+    throw new Error('Google 로그인 서비스를 초기화할 수 없습니다.');
+  }
   tokenClient = window.google.accounts.oauth2.initTokenClient({
     client_id: clientId,
     scope: SCOPES,
-    callback: '', // requestAccessToken에서 동적으로 설정
+    callback: () => {}, // requestAccessToken에서 실제 콜백으로 교체
   });
 }
 
