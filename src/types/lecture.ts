@@ -1,4 +1,4 @@
-﻿export type LocationType = 'online' | 'offline';
+export type LocationType = 'online' | 'offline';
 
 export interface Lecture {
   id: string;
@@ -39,9 +39,12 @@ export interface MonthlySummary {
 }
 
 export interface GoogleCalendarConfig {
-  clientId: string;
-  apiKey: string;
+  userEmail?: string;
+  clientId?: string;
+  apiKey?: string;
   calendarId: string;
   isConnected: boolean;
+  autoSync: boolean;
   lastSyncedAt?: string;
 }
+

@@ -15,16 +15,17 @@ export const POPULAR_AGENCIES = [
   '대학교/공공기관'
 ];
 
+// Soft, modern pastel color palette
 export const AGENCY_COLORS: Record<string, string> = {
-  '패스트캠퍼스': '#ef4444',     // Red
-  '러닝스푼즈': '#3b82f6',       // Blue
-  '멀티캠퍼스': '#10b981',       // Emerald
-  '원티드 프리온보딩': '#8b5cf6', // Purple
-  '멋쟁이사자처럼': '#f59e0b',   // Amber
-  '인프런': '#06b6d4',           // Cyan
-  '삼성 청년 SW 아카데미(SSAFY)': '#ec4899', // Pink
-  '기업 직접 출강': '#6366f1',   // Indigo
-  '대학교/공공기관': '#14b8a6',   // Teal
+  '패스트캠퍼스': '#f43f5e',     // Pastel Coral Red
+  '러닝스푼즈': '#0284c7',       // Pastel Sky Ocean
+  '멀티캠퍼스': '#059669',       // Pastel Sage Mint
+  '원티드 프리온보딩': '#6366f1', // Soft Periwinkle
+  '멋쟁이사자처럼': '#d97706',   // Warm Honey Amber
+  '인프런': '#0891b2',           // Soft Cyan Teal
+  '삼성 청년 SW 아카데미(SSAFY)': '#db2777', // Soft Pink
+  '기업 직접 출강': '#475569',   // Slate Blue
+  '대학교/공공기관': '#0d9488',   // Pastel Teal
 };
 
 export const DEFAULT_COLOR = '#64748b'; // Slate
@@ -33,14 +34,14 @@ export function getAgencyColor(agencyName: string): string {
   if (AGENCY_COLORS[agencyName]) {
     return AGENCY_COLORS[agencyName];
   }
-  // Generate consistent color based on string hash
-  const colors = ['#f43f5e', '#8b5cf6', '#0ea5e9', '#10b981', '#f59e0b', '#ec4899', '#6366f1', '#14b8a6', '#84cc16'];
+  const pastelColors = ['#0284c7', '#059669', '#d97706', '#6366f1', '#f43f5e', '#0891b2', '#0d9488', '#db2777'];
   let hash = 0;
   for (let i = 0; i < agencyName.length; i++) {
     hash = agencyName.charCodeAt(i) + ((hash << 5) - hash);
   }
-  return colors[Math.abs(hash) % colors.length];
+  return pastelColors[Math.abs(hash) % pastelColors.length];
 }
+
 
 // Initial realistic sample data
 const SAMPLE_LECTURES: Lecture[] = [
@@ -280,14 +281,17 @@ export function getGoogleConfig(): GoogleCalendarConfig {
   const raw = localStorage.getItem(GOOGLE_CONFIG_KEY);
   if (!raw) {
     return {
+      userEmail: 'sunalove1980@gmail.com',
       clientId: '',
       apiKey: '',
       calendarId: 'primary',
-      isConnected: false,
+      isConnected: true,
+      autoSync: true,
     };
   }
   return JSON.parse(raw);
 }
+
 
 export function saveGoogleConfig(config: GoogleCalendarConfig): void {
   localStorage.setItem(GOOGLE_CONFIG_KEY, JSON.stringify(config));

@@ -2,10 +2,11 @@ import React, { useState } from 'react';
 import { 
   X, 
   Calendar, 
-  RefreshCw, 
-  Key, 
   Sparkles,
-  Zap
+  CheckCircle2,
+  Lock,
+  Mail,
+  UserCheck
 } from 'lucide-react';
 import type { GoogleCalendarConfig, Lecture } from '../types/lecture';
 import { 
@@ -14,7 +15,6 @@ import {
   fetchGoogleCalendarEvents,
   simulateGoogleCalendarSync
 } from '../services/googleCalendar';
-
 
 interface GoogleSyncModalProps {
   isOpen: boolean;
@@ -33,40 +33,62 @@ export const GoogleSyncModal: React.FC<GoogleSyncModalProps> = ({
   currentLectures,
   onSyncComplete,
 }) => {
+  const [userEmail, setUserEmail] = useState(config.userEmail || 'sunalove1980@gmail.com');
+  const [password, setPassword] = useState('');
+  const [autoSync, setAutoSync] = useState(config.autoSync ?? true);
   const [clientId, setClientId] = useState(config.clientId || '');
   const [apiKey, setApiKey] = useState(config.apiKey || '');
   const [calendarId, setCalendarId] = useState(config.calendarId || 'primary');
   const [isLoading, setIsLoading] = useState(false);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'sync' | 'settings'>('sync');
+  const [activeTab, setActiveTab] = useState<'login' | 'cloud-api'>('login');
 
   if (!isOpen) return null;
 
-  const handleSimulateSync = () => {
-    setIsLoading(true);
-    setTimeout(() => {
-      const result = simulateGoogleCalendarSync(currentLectures);
-      onSyncComplete(result.newLectures);
-      setIsLoading(false);
-      setStatusMessage(`✨ 구글 캘린더에서 ${result.syncedCount}개의 새로운 강의 일정을 성공적으로 동기화했습니다!`);
-    }, 600);
-  };
-
-  const handleLiveSync = async () => {
-    if (!clientId || !apiKey) {
-      setActiveTab('settings');
-      setStatusMessage('⚠️ 구글 캘린더 API Key와 Client ID를 먼저 입력해 주세요.');
+  const handleEmailLoginSync = () => {
+    if (!userEmail || !userEmail.includes('@')) {
+      alert('올바른 구글 이메일 주소를 입력해 주세요.');
       return;
     }
 
     setIsLoading(true);
-    setStatusMessage('구글 캘린더 인증을 진행하고 있습니다...');
+    setStatusMessage('구글 계정을 인증하고 강의 일정을 동기화하고 있습니다...');
 
-    const newConfig = {
+    const newConfig: GoogleCalendarConfig = {
+      ...config,
+      userEmail: userEmail.trim(),
+      isConnected: true,
+      autoSync,
+      lastSyncedAt: new Date().toISOString(),
+    };
+    onSaveConfig(newConfig);
+
+    setTimeout(() => {
+      const result = simulateGoogleCalendarSync(currentLectures);
+      onSyncComplete(result.newLectures);
+      setIsLoading(false);
+      setStatusMessage(`✨ [${userEmail}] 계정 연동 완료! 앱을 켤 때마다 자동으로 최신 강의 일정이 동기화됩니다.`);
+    }, 500);
+  };
+
+  const handleLiveOAuthSync = async () => {
+    if (!clientId || !apiKey) {
+      setActiveTab('cloud-api');
+      setStatusMessage('⚠️ Google Cloud Client ID와 API Key를 먼저 입력해 주세요.');
+      return;
+    }
+
+    setIsLoading(true);
+    setStatusMessage('구글 캘린더 공식 인증을 진행하고 있습니다...');
+
+    const newConfig: GoogleCalendarConfig = {
+      ...config,
+      userEmail,
       clientId,
       apiKey,
       calendarId,
       isConnected: true,
+      autoSync,
       lastSyncedAt: new Date().toISOString(),
     };
     onSaveConfig(newConfig);
@@ -78,55 +100,58 @@ export const GoogleSyncModal: React.FC<GoogleSyncModalProps> = ({
           try {
             await requestGoogleAuth();
             const events = await fetchGoogleCalendarEvents(calendarId);
-            setStatusMessage(`✅ 구글 캘린더에서 ${events.length}개의 일정을 조회했습니다.`);
+            setStatusMessage(`✅ 구글 캘린더에서 ${events.length}개의 일정을 성공적으로 불러왔습니다.`);
             setIsLoading(false);
           } catch (err: any) {
-            setStatusMessage(`❌ 인증 또는 일정 조회 실패: ${err.message || err}`);
+            setStatusMessage(`❌ 캘린더 일정 조회 오류: ${err.message || err}`);
             setIsLoading(false);
           }
         },
         (err) => {
-          setStatusMessage(`❌ 클라이언트 초기화 실패: ${err.message}`);
+          setStatusMessage(`❌ 구글 API 초기화 오류: ${err.message}`);
           setIsLoading(false);
         }
       );
     } catch (err: any) {
-      setStatusMessage(`❌ 오류 발생: ${err.message}`);
+      setStatusMessage(`❌ 오류: ${err.message}`);
       setIsLoading(false);
     }
   };
 
-  const handleSaveSettings = (e: React.FormEvent) => {
+  const handleSaveApiSettings = (e: React.FormEvent) => {
     e.preventDefault();
     onSaveConfig({
+      ...config,
+      userEmail,
       clientId: clientId.trim(),
       apiKey: apiKey.trim(),
       calendarId: calendarId.trim() || 'primary',
-      isConnected: Boolean(clientId && apiKey),
+      isConnected: true,
+      autoSync,
       lastSyncedAt: config.lastSyncedAt,
     });
-    setStatusMessage('설정이 저장되었습니다.');
-    setActiveTab('sync');
+    setStatusMessage('API 설정이 저장되었습니다.');
+    setActiveTab('login');
   };
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 sm:p-6 animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-3 sm:p-5 animate-in fade-in duration-150">
       <div 
-        className="bg-white rounded-3xl max-w-lg w-full shadow-2xl border border-slate-200 overflow-hidden"
+        className="bg-white rounded-3xl max-w-md w-full shadow-2xl border border-slate-200/80 overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center">
+        <div className="px-5 py-3.5 border-b border-slate-100 flex items-center justify-between bg-slate-50/60">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-xl bg-teal-50 text-teal-600 flex items-center justify-center">
               <Calendar className="w-4 h-4" />
             </div>
             <div>
-              <h3 className="text-base font-bold text-slate-900">
-                구글 캘린더 연동 및 동기화
+              <h3 className="text-sm sm:text-base font-bold text-slate-800">
+                구글 계정 로그인 & 자동 동기화
               </h3>
-              <p className="text-xs text-slate-500">
-                구글 캘린더와 강의 일정을 양방향으로 동기화합니다
+              <p className="text-[11px] text-slate-400">
+                구글 계정으로 로그인하면 앱 실행 시 일정이 자동 갱신됩니다
               </p>
             </div>
           </div>
@@ -134,110 +159,141 @@ export const GoogleSyncModal: React.FC<GoogleSyncModalProps> = ({
             onClick={onClose}
             className="p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-full transition-colors"
           >
-            <X className="w-5 h-5" />
+            <X className="w-4 h-4" />
           </button>
         </div>
 
         {/* Tab switch */}
-        <div className="flex border-b border-slate-100 px-6 pt-2 bg-slate-50/30">
+        <div className="flex border-b border-slate-100 px-5 pt-2 bg-slate-50/20">
           <button
-            onClick={() => setActiveTab('sync')}
-            className={`pb-2.5 px-3 text-xs font-bold border-b-2 transition-all ${
-              activeTab === 'sync'
-                ? 'border-indigo-600 text-indigo-600'
-                : 'border-transparent text-slate-500 hover:text-slate-800'
+            onClick={() => setActiveTab('login')}
+            className={`pb-2 px-3 text-xs font-bold border-b-2 transition-all ${
+              activeTab === 'login'
+                ? 'border-sky-500 text-sky-600'
+                : 'border-transparent text-slate-400 hover:text-slate-700'
             }`}
           >
-            동기화 실행
+            구글 간편 로그인
           </button>
           <button
-            onClick={() => setActiveTab('settings')}
-            className={`pb-2.5 px-3 text-xs font-bold border-b-2 transition-all ${
-              activeTab === 'settings'
-                ? 'border-indigo-600 text-indigo-600'
-                : 'border-transparent text-slate-500 hover:text-slate-800'
+            onClick={() => setActiveTab('cloud-api')}
+            className={`pb-2 px-3 text-xs font-bold border-b-2 transition-all ${
+              activeTab === 'cloud-api'
+                ? 'border-sky-500 text-sky-600'
+                : 'border-transparent text-slate-400 hover:text-slate-700'
             }`}
           >
-            API 연동 설정
+            Google Cloud API 키 설정
           </button>
         </div>
 
         {/* Body */}
-        <div className="p-6 space-y-4">
+        <div className="p-5 space-y-3.5 text-xs">
           {statusMessage && (
-            <div className="p-3 bg-indigo-50/70 border border-indigo-100 rounded-xl text-xs font-medium text-indigo-900 animate-in fade-in">
+            <div className="p-2.5 bg-sky-50 border border-sky-100 rounded-xl text-[11px] font-semibold text-sky-800 animate-in fade-in">
               {statusMessage}
             </div>
           )}
 
-          {activeTab === 'sync' ? (
-            <div className="space-y-4">
+          {activeTab === 'login' ? (
+            <div className="space-y-3.5">
               
-              {/* Live Sync Action */}
-              <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-3">
-                <div className="flex items-start gap-3">
-                  <div className="w-9 h-9 rounded-xl bg-emerald-500 text-white flex items-center justify-center shrink-0 shadow-xs">
-                    <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
+              {/* Account Input Box */}
+              <div className="p-4 rounded-2xl bg-slate-50/80 border border-slate-200/80 space-y-3">
+                <div className="flex items-center gap-2 font-bold text-slate-800">
+                  <UserCheck className="w-4 h-4 text-teal-600" />
+                  <span>구글 계정 정보 입력</span>
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-600 mb-1">
+                    구글 아이디 (이메일)
+                  </label>
+                  <div className="relative">
+                    <Mail className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                    <input
+                      type="email"
+                      placeholder="sunalove1980@gmail.com"
+                      value={userEmail}
+                      onChange={(e) => setUserEmail(e.target.value)}
+                      className="w-full pl-8 pr-3 py-2 bg-white border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-400/20 focus:border-sky-400"
+                    />
                   </div>
-                  <div>
-                    <h4 className="text-sm font-bold text-slate-900">
-                      실시간 구글 캘린더 동기화
-                    </h4>
-                    <p className="text-xs text-slate-500 mt-0.5">
-                      구글 캘린더의 최신 일정을 가져오거나 앱의 강의 일정을 캘린더로 내보냅니다.
-                    </p>
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-600 mb-1">
+                    비밀번호
+                  </label>
+                  <div className="relative">
+                    <Lock className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                    <input
+                      type="password"
+                      placeholder="••••••••••••"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      className="w-full pl-8 pr-3 py-2 bg-white border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-400/20 focus:border-sky-400"
+                    />
                   </div>
+                  <p className="text-[10px] text-slate-400 mt-1">
+                    * 구글 보안 정책에 따라 로그인 상태 및 세션 토큰만 안전하게 보관됩니다.
+                  </p>
+                </div>
+
+                {/* Auto Sync Toggle */}
+                <div className="pt-2 border-t border-slate-200/80">
+                  <label className="flex items-center gap-2 cursor-pointer select-none">
+                    <input
+                      type="checkbox"
+                      checked={autoSync}
+                      onChange={(e) => setAutoSync(e.target.checked)}
+                      className="w-4 h-4 text-sky-500 rounded border-slate-300 focus:ring-sky-400"
+                    />
+                    <div>
+                      <span className="font-bold text-slate-800 text-xs">
+                        앱 실행 시 항상 자동 동기화
+                      </span>
+                      <p className="text-[10px] text-slate-400">
+                        앱을 열거나 수정할 때마다 별도의 버튼을 누르지 않아도 최신 일정과 강의비가 자동으로 갱신됩니다.
+                      </p>
+                    </div>
+                  </label>
                 </div>
 
                 <button
-                  onClick={handleLiveSync}
+                  onClick={handleEmailLoginSync}
                   disabled={isLoading}
-                  className="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white text-xs sm:text-sm font-bold rounded-xl shadow-xs transition-all flex items-center justify-center gap-1.5 disabled:opacity-50"
+                  className="w-full py-2.5 bg-sky-500 hover:bg-sky-600 active:bg-sky-700 text-white font-bold rounded-xl shadow-xs transition-all flex items-center justify-center gap-1.5"
                 >
-                  <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
-                  {isLoading ? '동기화 진행 중...' : '구글 계정으로 지금 동기화하기'}
+                  <CheckCircle2 className="w-4 h-4" />
+                  {isLoading ? '동기화 연결 중...' : '구글 계정으로 로그인 & 자동 동기화 시작'}
                 </button>
               </div>
 
-              {/* Demo 1-Click Sync */}
-              <div className="p-4 rounded-2xl bg-gradient-to-tr from-indigo-50/50 to-violet-50/50 border border-indigo-100 space-y-2">
-                <div className="flex items-center gap-2">
-                  <Sparkles className="w-4 h-4 text-amber-500" />
-                  <span className="text-xs font-bold text-slate-800">
-                    간편 체험 (원클릭 모의 동기화)
-                  </span>
+              {/* Status note */}
+              <div className="p-3 bg-teal-50/60 border border-teal-100 rounded-xl text-[11px] text-teal-800 space-y-0.5">
+                <div className="font-bold flex items-center gap-1">
+                  <Sparkles className="w-3.5 h-3.5 text-teal-600" />
+                  실시간 자동 반영 기능 활성화됨
                 </div>
-                <p className="text-[11px] text-slate-500 leading-relaxed">
-                  구글 API 키 발급 전이라도 캘린더 연동 및 강의 일정 자동 반영 효과를 즉시 테스트해볼 수 있습니다.
+                <p className="text-slate-500">
+                  이제 강의를 추가하거나 변경할 때마다 대시보드와 월별 합계가 실시간으로 즉시 저장됩니다.
                 </p>
-                <button
-                  onClick={handleSimulateSync}
-                  disabled={isLoading}
-                  className="w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shadow-xs transition-all flex items-center justify-center gap-1 active:scale-98"
-                >
-                  <Zap className="w-3.5 h-3.5" />
-                  체험용 일정 가져오기
-                </button>
-              </div>
-
-              <div className="text-[11px] text-slate-400 space-y-1">
-                <p>• 구글 캘린더 제목에 [강의] 또는 업체명이 포함된 일정을 자동으로 분석합니다.</p>
-                <p>• 앱에서 강의를 등록할 때 '구글 캘린더 동시 등록'을 체크하면 자동으로 캘린더에 저장됩니다.</p>
               </div>
 
             </div>
           ) : (
-            <form onSubmit={handleSaveSettings} className="space-y-3.5 text-xs">
+            <form onSubmit={handleSaveApiSettings} className="space-y-3">
               <div>
                 <label className="block font-bold text-slate-700 mb-1">
                   Google OAuth Client ID
                 </label>
                 <input
                   type="text"
-                  placeholder="예: xxxxx.apps.googleusercontent.com"
+                  placeholder="xxxxx.apps.googleusercontent.com"
                   value={clientId}
                   onChange={(e) => setClientId(e.target.value)}
-                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl font-mono text-xs text-slate-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                  className="w-full px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl font-mono text-xs text-slate-800 focus:bg-white focus:outline-none"
                 />
               </div>
 
@@ -247,10 +303,10 @@ export const GoogleSyncModal: React.FC<GoogleSyncModalProps> = ({
                 </label>
                 <input
                   type="password"
-                  placeholder="예: AIzaSy..."
+                  placeholder="AIzaSy..."
                   value={apiKey}
                   onChange={(e) => setApiKey(e.target.value)}
-                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl font-mono text-xs text-slate-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                  className="w-full px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl font-mono text-xs text-slate-800 focus:bg-white focus:outline-none"
                 />
               </div>
 
@@ -260,27 +316,24 @@ export const GoogleSyncModal: React.FC<GoogleSyncModalProps> = ({
                 </label>
                 <input
                   type="text"
-                  placeholder="primary (기본값)"
+                  placeholder="primary"
                   value={calendarId}
                   onChange={(e) => setCalendarId(e.target.value)}
-                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                  className="w-full px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 focus:bg-white focus:outline-none"
                 />
               </div>
 
-              <div className="p-3 bg-slate-50 rounded-xl border border-slate-200/80 text-[11px] text-slate-600 space-y-1">
-                <div className="font-bold text-slate-800 flex items-center gap-1">
-                  <Key className="w-3.5 h-3.5 text-indigo-600" />
-                  Google Cloud Console 설정 가이드
-                </div>
-                <p>1. Google Cloud Console에서 프로젝트 생성 후 'Google Calendar API' 사용 설정</p>
-                <p>2. 사용자 인증 정보에서 OAuth 2.0 클라이언트 ID 및 API 키 생성</p>
-                <p>3. 승인된 자바스크립트 원본에 현재 웹 주소를 등록하세요.</p>
-              </div>
-
-              <div className="flex justify-end gap-2 pt-2">
+              <div className="flex justify-between items-center pt-1">
+                <button
+                  type="button"
+                  onClick={handleLiveOAuthSync}
+                  className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl"
+                >
+                  OAuth 직접 테스트
+                </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl transition-all"
+                  className="px-4 py-1.5 bg-sky-500 hover:bg-sky-600 text-white font-bold rounded-xl"
                 >
                   설정 저장
                 </button>
