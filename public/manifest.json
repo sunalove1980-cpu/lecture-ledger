@@ -1,0 +1,18 @@
+﻿{
+  "name": "강의료 & 일정 매니저 | Lecture Ledger",
+  "short_name": "강의 매니저",
+  "description": "강사 전용 강의 스케줄 및 월별 정산/수익 관리 웹앱",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f8fafc",
+  "theme_color": "#4f46e5",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
