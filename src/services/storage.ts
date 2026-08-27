@@ -129,7 +129,6 @@ export function clearAllLectures(): void {
 
 export function getGoogleConfig(): GoogleCalendarConfig {
   const defaultConfig: GoogleCalendarConfig = {
-    clientId: '',
     calendarId: 'primary',
     isConnected: false,
     autoSync: true,
@@ -143,7 +142,6 @@ export function getGoogleConfig(): GoogleCalendarConfig {
     return {
       ...defaultConfig,
       ...parsed,
-      clientId: typeof parsed.clientId === 'string' ? parsed.clientId : '',
       calendarId: typeof parsed.calendarId === 'string' && parsed.calendarId ? parsed.calendarId : 'primary',
       // OAuth access tokens are short-lived and must never be restored as a session.
       accessToken: undefined,

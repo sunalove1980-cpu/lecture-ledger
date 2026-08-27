@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Calendar, ExternalLink, LogIn, CheckCircle2, AlertCircle } from 'lucide-react';
+import { X, Calendar, LogIn, CheckCircle2, AlertCircle } from 'lucide-react';
 import type { GoogleCalendarConfig, Lecture } from '../types/lecture';
 import {
   initTokenClient,
@@ -25,18 +25,16 @@ export const GoogleSyncModal: React.FC<GoogleSyncModalProps> = ({
   onSaveConfig,
   onSyncComplete,
 }) => {
-  const [clientId, setClientId] = useState(config.clientId || '');
+  const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID?.trim() || '';
   const [calendarId, setCalendarId] = useState(config.calendarId || 'primary');
   const [isLoading, setIsLoading] = useState(false);
   const [status, setStatus] = useState<{ type: 'success' | 'error' | 'info'; message: string } | null>(null);
-  const [showGuide, setShowGuide] = useState(false);
 
   if (!isOpen) return null;
 
   const handleGoogleLogin = async () => {
-    const id = clientId.trim();
-    if (!id) {
-      setStatus({ type: 'error', message: 'Client ID를 먼저 입력해 주세요.' });
+    if (!googleClientId) {
+      setStatus({ type: 'error', message: '현재 Google 로그인을 준비 중입니다. 관리자에게 문의해 주세요.' });
       return;
     }
 
@@ -45,7 +43,7 @@ export const GoogleSyncModal: React.FC<GoogleSyncModalProps> = ({
 
     try {
       // 1. Token Client 초기화
-      await initTokenClient(id);
+      await initTokenClient(googleClientId);
 
       // 2. 구글 로그인 팝업 → Access Token 획득
       const { accessToken, email } = await requestAccessToken();
@@ -88,7 +86,6 @@ export const GoogleSyncModal: React.FC<GoogleSyncModalProps> = ({
 
       // 6. 설정 저장
       const newConfig: GoogleCalendarConfig = {
-        clientId: id,
         calendarId: calendarId.trim() || 'primary',
         isConnected: true,
         autoSync: true,
@@ -117,14 +114,12 @@ export const GoogleSyncModal: React.FC<GoogleSyncModalProps> = ({
 
   const handleDisconnect = () => {
     onSaveConfig({
-      clientId: '',
       calendarId: 'primary',
       isConnected: false,
       autoSync: false,
       userEmail: undefined,
       accessToken: undefined,
     });
-    setClientId('');
     setStatus({ type: 'info', message: '구글 계정 연동이 해제되었습니다.' });
   };
 
@@ -189,70 +184,9 @@ export const GoogleSyncModal: React.FC<GoogleSyncModalProps> = ({
             </div>
           )}
 
-          {/* Client ID 입력 */}
-          <div>
-            <label className="block text-sm font-bold text-gray-700 mb-1.5">
-              Google OAuth Client ID
-            </label>
-            <input
-              type="text"
-              placeholder="123456789-xxxxxxxxxx.apps.googleusercontent.com"
-              value={clientId}
-              onChange={(e) => setClientId(e.target.value)}
-              className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 font-mono focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
-            />
-            <button
-              onClick={() => setShowGuide(!showGuide)}
-              className="mt-1.5 text-xs text-blue-600 hover:text-blue-700 font-medium flex items-center gap-1"
-            >
-              <ExternalLink className="w-3 h-3" />
-              Client ID를 어떻게 발급받나요?
-            </button>
-          </div>
-
-          {/* Client ID 발급 가이드 */}
-          {showGuide && (
-            <div className="p-4 rounded-xl bg-gray-50 border border-gray-200 text-sm text-gray-700 space-y-2">
-              <p className="font-bold text-gray-900">Client ID 발급 방법 (무료, 1회만)</p>
-              <ol className="list-decimal pl-4 space-y-1.5 text-xs leading-relaxed">
-                <li>
-                  <a
-                    href="https://console.cloud.google.com/"
-                    target="_blank"
-                    rel="noreferrer"
-                    className="text-blue-600 underline"
-                  >
-                    Google Cloud Console
-                  </a>
-                  에 접속하여 새 프로젝트를 만드세요.
-                </li>
-                <li>
-                  좌측 메뉴 → "API 및 서비스" → "라이브러리" → <strong>Google Calendar API</strong>를
-                  검색하여 "사용" 버튼을 눌러 활성화하세요.
-                </li>
-                <li>
-                  "API 및 서비스" → "OAuth 동의 화면" → 외부 선택 → 앱 이름/이메일 입력 후 저장.
-                </li>
-                <li>
-                  "OAuth 동의 화면" → "테스트 사용자" 탭 → 본인 Gmail 주소를 추가하세요.
-                </li>
-                <li>
-                  "사용자 인증 정보" → "+ 사용자 인증 정보 만들기" → "OAuth 클라이언트 ID"
-                  → 유형: <strong>웹 애플리케이션</strong>
-                </li>
-                <li>
-                  "승인된 JavaScript 원본"에 다음 URL들을 추가하세요:
-                  <br />
-                  <code className="bg-gray-200 px-1 rounded text-xs">http://localhost:5173</code>
-                  <br />
-                  <code className="bg-gray-200 px-1 rounded text-xs">
-                    {window.location.origin}
-                  </code>
-                </li>
-                <li>
-                  "만들기" 버튼을 누르면 <strong>Client ID</strong>가 표시됩니다. 이것을 위에 붙여넣으세요.
-                </li>
-              </ol>
+          {!googleClientId && (
+            <div className="p-3 rounded-xl bg-amber-50 border border-amber-200 text-xs text-amber-800 leading-relaxed">
+              Google 로그인 설정이 아직 완료되지 않았습니다. 잠시 후 다시 시도해 주세요.
             </div>
           )}
 
@@ -280,7 +214,7 @@ export const GoogleSyncModal: React.FC<GoogleSyncModalProps> = ({
           {/* 로그인 버튼 */}
           <button
             onClick={handleGoogleLogin}
-            disabled={isLoading || !clientId.trim()}
+            disabled={isLoading || !googleClientId}
             className="w-full py-3 bg-gray-900 hover:bg-gray-800 disabled:bg-gray-300 text-white font-bold rounded-xl transition-colors flex items-center justify-center gap-2"
           >
             <LogIn className="w-4 h-4" />

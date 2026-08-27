@@ -39,7 +39,6 @@ export interface MonthlySummary {
 }
 
 export interface GoogleCalendarConfig {
-  clientId: string;
   calendarId: string;
   isConnected: boolean;
   autoSync: boolean;

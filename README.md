@@ -1,32 +1,30 @@
-# React + TypeScript + Vite
+# Lecture Ledger
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+강의 일정과 강의료 정산을 관리하고 Google Calendar의 `[G]` 일정을 가져오는 React/Vite 앱입니다.
 
-Currently, two official plugins are available:
+## 로컬 실행
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
-
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the Oxlint configuration
-
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
-
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
+```bash
+npm ci
+copy .env.example .env.local
+npm run dev
 ```
 
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+`.env.local`의 `VITE_GOOGLE_CLIENT_ID`에는 Google Cloud에서 만든 웹 애플리케이션 OAuth Client ID를 설정합니다.
+
+## Google 로그인 설정
+
+1. Google Cloud 프로젝트에서 Google Calendar API를 활성화합니다.
+2. OAuth 동의 화면을 구성하고 `calendar.readonly` 범위를 사용합니다.
+3. 웹 애플리케이션 OAuth Client ID를 만듭니다.
+4. 승인된 JavaScript 원본에 로컬 주소와 실제 배포 주소를 등록합니다.
+5. Vercel 환경변수 `VITE_GOOGLE_CLIENT_ID`에 Client ID를 저장한 뒤 다시 배포합니다.
+
+사용자는 앱 화면에서 별도의 Client ID를 입력하지 않고 **Google로 로그인** 버튼만 누르면 됩니다.
+
+## 확인
+
+```bash
+npm run lint
+npm run build
+```
