@@ -116,28 +116,38 @@ export async function fetchCalendarEvents(
   timeMin?: string,
   timeMax?: string,
 ): Promise<any[]> {
-  const now = new Date();
   const params = new URLSearchParams({
     singleEvents: 'true',
     orderBy: 'startTime',
-    timeMin: timeMin || new Date(now.getFullYear(), 0, 1).toISOString(),
-    timeMax: timeMax || new Date(now.getFullYear() + 1, 0, 1).toISOString(),
-    maxResults: '500',
+    // 기존 강의 기록이 시작된 날짜부터 모두 동기화합니다.
+    timeMin: timeMin || '2023-09-05T00:00:00+09:00',
+    maxResults: '2500',
   });
 
-  const url = `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calendarId)}/events?${params}`;
+  if (timeMax) params.set('timeMax', timeMax);
 
-  const response = await fetch(url, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
+  const events: any[] = [];
+  let pageToken: string | undefined;
 
-  if (!response.ok) {
-    const errBody = await response.text();
-    throw new Error(`Calendar API 오류 (${response.status}): ${errBody}`);
-  }
+  do {
+    if (pageToken) params.set('pageToken', pageToken);
 
-  const data = await response.json();
-  return data.items || [];
+    const url = `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calendarId)}/events?${params}`;
+    const response = await fetch(url, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    if (!response.ok) {
+      const errBody = await response.text();
+      throw new Error(`Calendar API 오류 (${response.status}): ${errBody}`);
+    }
+
+    const data = await response.json();
+    events.push(...(data.items || []));
+    pageToken = data.nextPageToken;
+  } while (pageToken);
+
+  return events;
 }
 
 // ─── [G] 이벤트 파싱 유틸리티 ─────────────────────────
@@ -221,7 +231,9 @@ export function parseGEventsToLectures(events: any[]): CalendarLecture[] {
       const startDate = new Date(startRaw);
       const endDate = new Date(endRaw);
 
-      const eventDate = startDate.toISOString().split('T')[0];
+      // ISO UTC 변환으로 한국 시간의 날짜가 전날로 바뀌지 않도록
+      // Calendar 응답에 기록된 현지 날짜 부분을 그대로 사용합니다.
+      const eventDate = startRaw.slice(0, 10);
       let eventStartTime = startDate.toTimeString().slice(0, 5);
       let eventEndTime = endDate.toTimeString().slice(0, 5);
 
