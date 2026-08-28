@@ -174,13 +174,31 @@ function parseFee(text: string): number {
 }
 
 /**
- * 시간 파싱: "9~11시", "9시~11시", "09:30~11:30", "오후 1~3시"
+ * 시간 파싱: "9~11시", "1시 30분~5시 30분", "09:30~11:30", "오후 1~3시"
  */
 function parseTimeRange(text: string): { startTime: string; endTime: string } | null {
-  const match = text.trim().match(
-    /(?:(오전|오후)\s*)?(\d{1,2})(?::(\d{1,2}))?\s*시?\s*[~～\-–]\s*(?:(오전|오후)\s*)?(\d{1,2})(?::(\d{1,2}))?\s*시?/,
-  );
-  if (!match) return null;
+  const points = text.trim().split(/\s*[~～\-–]\s*/);
+  if (points.length < 2) return null;
+
+  const parseTimePoint = (point: string) => {
+    const match = point.trim().match(
+      /^(?:(오전|오후)\s*)?(\d{1,2})(?:(?:\s*시)?\s*(\d{1,2})\s*분|:(\d{1,2})|\s*시)?$/,
+    );
+    if (!match) return null;
+
+    const minute = parseInt(match[3] || match[4] || '0', 10);
+    if (minute > 59) return null;
+
+    return {
+      period: match[1] || undefined,
+      hourText: match[2],
+      minute,
+    };
+  };
+
+  const start = parseTimePoint(points[0]);
+  const end = parseTimePoint(points[1]);
+  if (!start || !end) return null;
 
   const to24Hour = (hourText: string, period?: string) => {
     let hour = parseInt(hourText, 10);
@@ -189,16 +207,14 @@ function parseTimeRange(text: string): { startTime: string; endTime: string } | 
     return hour;
   };
 
-  const startPeriod = match[1];
-  const endPeriod = match[4] || startPeriod;
-  const startHour = to24Hour(match[2], startPeriod);
-  const endHour = to24Hour(match[5], endPeriod);
+  const startHour = to24Hour(start.hourText, start.period);
+  const endHour = to24Hour(end.hourText, end.period || start.period);
 
   if (startHour > 23 || endHour > 23) return null;
 
   return {
-    startTime: `${String(startHour).padStart(2, '0')}:${(match[3] || '00').padStart(2, '0')}`,
-    endTime: `${String(endHour).padStart(2, '0')}:${(match[6] || '00').padStart(2, '0')}`,
+    startTime: `${String(startHour).padStart(2, '0')}:${String(start.minute).padStart(2, '0')}`,
+    endTime: `${String(endHour).padStart(2, '0')}:${String(end.minute).padStart(2, '0')}`,
   };
 }
 
