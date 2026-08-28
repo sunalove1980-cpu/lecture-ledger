@@ -156,7 +156,7 @@ export async function fetchCalendarEvents(
  * 강의료 파싱: "23만원" → 230000, "120만원" → 1200000, "50만" → 500000
  */
 function parseFee(text: string): number {
-  const trimmed = text.trim();
+  const trimmed = text.trim().replace(/,/g, '');
 
   // "23만원", "23만", "1.5만원"
   const manMatch = trimmed.match(/(\d+(?:\.\d+)?)\s*만\s*원?/);
@@ -174,17 +174,32 @@ function parseFee(text: string): number {
 }
 
 /**
- * 시간 파싱: "15시~17시" → { startTime: "15:00", endTime: "17:00" }
+ * 시간 파싱: "9~11시", "9시~11시", "09:30~11:30", "오후 1~3시"
  */
 function parseTimeRange(text: string): { startTime: string; endTime: string } | null {
-  const match = text.trim().match(/(\d{1,2})\s*시\s*~\s*(\d{1,2})\s*시/);
-  if (match) {
-    return {
-      startTime: match[1].padStart(2, '0') + ':00',
-      endTime: match[2].padStart(2, '0') + ':00',
-    };
-  }
-  return null;
+  const match = text.trim().match(
+    /(?:(오전|오후)\s*)?(\d{1,2})(?::(\d{1,2}))?\s*시?\s*[~～\-–]\s*(?:(오전|오후)\s*)?(\d{1,2})(?::(\d{1,2}))?\s*시?/,
+  );
+  if (!match) return null;
+
+  const to24Hour = (hourText: string, period?: string) => {
+    let hour = parseInt(hourText, 10);
+    if (period === '오전' && hour === 12) hour = 0;
+    if (period === '오후' && hour < 12) hour += 12;
+    return hour;
+  };
+
+  const startPeriod = match[1];
+  const endPeriod = match[4] || startPeriod;
+  const startHour = to24Hour(match[2], startPeriod);
+  const endHour = to24Hour(match[5], endPeriod);
+
+  if (startHour > 23 || endHour > 23) return null;
+
+  return {
+    startTime: `${String(startHour).padStart(2, '0')}:${(match[3] || '00').padStart(2, '0')}`,
+    endTime: `${String(endHour).padStart(2, '0')}:${(match[6] || '00').padStart(2, '0')}`,
+  };
 }
 
 // ─── [G] 이벤트 → 강의 데이터 변환 ───────────────────
@@ -192,6 +207,7 @@ function parseTimeRange(text: string): { startTime: string; endTime: string } | 
 export interface CalendarLecture {
   googleCalendarEventId: string;
   title: string;
+  agency: string;
   date: string;
   startTime: string;
   endTime: string;
@@ -205,14 +221,14 @@ export interface CalendarLecture {
  * [G] 이벤트를 강의 데이터로 변환합니다.
  *
  * 지원하는 형식:
- *   [G] 15시~17시, CS, 여성회관, 23만원
+ *   [G] 9~11시, CS 강의, 패스트캠퍼스, 23만원
  *   [G] 10시~12시, AI 특강, 온라인
  *   [G] 강의제목
  *
  * 쉼표로 구분된 필드:
  *   1번째: 시간 (15시~17시) — 없으면 캘린더 이벤트 시간 사용
  *   2번째: 강의명/주제
- *   3번째: 장소
+ *   3번째: 강의 업체
  *   4번째: 강의료 (23만원)
  */
 export function parseGEventsToLectures(events: any[]): CalendarLecture[] {
@@ -241,34 +257,35 @@ export function parseGEventsToLectures(events: any[]): CalendarLecture[] {
       const parts = rawText.split(',').map((p: string) => p.trim());
 
       let title = rawText;
-      let locationDetail: string | undefined;
+      let agency = '';
+      const locationDetail: string | undefined = event.location || undefined;
       let totalFee = 0;
 
       if (parts.length >= 4) {
-        // [G] 15시~17시, CS, 여성회관, 23만원
+        // [G] 9~11시, CS 강의, 패스트캠퍼스, 23만원
         const timeInfo = parseTimeRange(parts[0]);
         if (timeInfo) {
           eventStartTime = timeInfo.startTime;
           eventEndTime = timeInfo.endTime;
         }
         title = parts[1];
-        locationDetail = parts[2];
+        agency = parts[2];
         totalFee = parseFee(parts[3]);
       } else if (parts.length === 3) {
-        // [G] 15시~17시, CS, 여성회관  OR  [G] CS, 여성회관, 23만원
+        // [G] 9~11시, CS 강의, 패스트캠퍼스  OR  [G] CS 강의, 패스트캠퍼스, 23만원
         const timeInfo = parseTimeRange(parts[0]);
         if (timeInfo) {
           eventStartTime = timeInfo.startTime;
           eventEndTime = timeInfo.endTime;
           title = parts[1];
-          locationDetail = parts[2];
+          agency = parts[2];
         } else {
           title = parts[0];
-          locationDetail = parts[1];
+          agency = parts[1];
           totalFee = parseFee(parts[2]);
         }
       } else if (parts.length === 2) {
-        // [G] 15시~17시, CS  OR  [G] CS, 여성회관
+        // [G] 9~11시, CS 강의  OR  [G] CS 강의, 패스트캠퍼스
         const timeInfo = parseTimeRange(parts[0]);
         if (timeInfo) {
           eventStartTime = timeInfo.startTime;
@@ -276,19 +293,21 @@ export function parseGEventsToLectures(events: any[]): CalendarLecture[] {
           title = parts[1];
         } else {
           title = parts[0];
-          locationDetail = parts[1];
+          agency = parts[1];
         }
       }
       // parts.length === 1: title = rawText (이미 설정됨)
 
       // 시간 차이 계산
-      const startH = parseInt(eventStartTime.split(':')[0], 10);
-      const endH = parseInt(eventEndTime.split(':')[0], 10);
-      const durationHours = endH > startH ? endH - startH : 1;
+      const [startH, startM] = eventStartTime.split(':').map(Number);
+      const [endH, endM] = eventEndTime.split(':').map(Number);
+      const durationMinutes = endH * 60 + endM - (startH * 60 + startM);
+      const durationHours = durationMinutes > 0 ? durationMinutes / 60 : 1;
 
       return {
         googleCalendarEventId: event.id,
         title: title || '(제목 없음)',
+        agency,
         date: eventDate,
         startTime: eventStartTime,
         endTime: eventEndTime,

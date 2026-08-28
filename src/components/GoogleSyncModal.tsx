@@ -59,29 +59,32 @@ export const GoogleSyncModal: React.FC<GoogleSyncModalProps> = ({
 
       // 5. 기존 강의 데이터와 병합 (중복 방지)
       const existingLectures = getLectures();
-      const existingGCalIds = new Set(
-        existingLectures.filter((l) => l.googleCalendarEventId).map((l) => l.googleCalendarEventId),
+      const existingByGCalId = new Map(
+        existingLectures.filter((l) => l.googleCalendarEventId).map((l) => [l.googleCalendarEventId, l]),
       );
 
       let addedCount = 0;
+      let updatedCount = 0;
       for (const gl of gLectures) {
-        if (!existingGCalIds.has(gl.googleCalendarEventId)) {
-          saveLecture({
-            title: gl.title,
-            agency: '',
-            date: gl.date,
-            startTime: gl.startTime,
-            endTime: gl.endTime,
-            durationHours: gl.durationHours,
-            totalFee: gl.totalFee,
-            isPaid: false,
-            locationType: gl.locationDetail ? 'offline' : 'online',
-            locationDetail: gl.locationDetail,
-            notes: gl.notes,
-            googleCalendarEventId: gl.googleCalendarEventId,
-          });
-          addedCount++;
-        }
+        const existing = existingByGCalId.get(gl.googleCalendarEventId);
+        saveLecture({
+          id: existing?.id,
+          title: gl.title,
+          agency: gl.agency,
+          date: gl.date,
+          startTime: gl.startTime,
+          endTime: gl.endTime,
+          durationHours: gl.durationHours,
+          totalFee: gl.totalFee,
+          isPaid: existing?.isPaid || false,
+          paidDate: existing?.paidDate,
+          locationType: gl.locationDetail ? 'offline' : 'online',
+          locationDetail: gl.locationDetail,
+          notes: gl.notes,
+          googleCalendarEventId: gl.googleCalendarEventId,
+        });
+        if (existing) updatedCount++;
+        else addedCount++;
       }
 
       // 6. 설정 저장
@@ -99,7 +102,7 @@ export const GoogleSyncModal: React.FC<GoogleSyncModalProps> = ({
 
       setStatus({
         type: 'success',
-        message: `${email} 연동 완료! [G] 이벤트 ${gLectures.length}건 발견, 신규 ${addedCount}건 추가.`,
+        message: `${email} 동기화 완료! 신규 ${addedCount}건 추가, 기존 ${updatedCount}건 갱신.`,
       });
     } catch (err: any) {
       console.error('Google Sync Error:', err);
