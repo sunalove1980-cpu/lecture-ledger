@@ -23,7 +23,6 @@ import {
   Calendar as CalendarIcon,
   ListFilter,
   BarChart3,
-  Plus,
 } from 'lucide-react';
 import { startOfMonth, endOfMonth, isWithinInterval, subMonths, format } from 'date-fns';
 import confetti from 'canvas-confetti';
@@ -139,7 +138,7 @@ export const App: React.FC = () => {
   ];
 
   return (
-    <div className="h-dvh flex flex-col bg-gray-50 text-gray-900">
+    <div className="h-dvh flex flex-col bg-[#f3f0e8] text-[#171916]">
 
       {/* ── 헤더 ── */}
       <Header
@@ -155,21 +154,16 @@ export const App: React.FC = () => {
       />
 
       {/* ── 데스크톱 탭바 ── */}
-      <div className="hidden md:flex border-b border-gray-200 bg-white px-6">
-        {tabs.map((tab) => (
-          <button
-            key={tab.id}
-            onClick={() => setActiveTab(tab.id)}
-            className={`px-4 py-2.5 text-sm font-semibold border-b-2 transition-colors ${
-              activeTab === tab.id
-                ? 'border-gray-900 text-gray-900'
-                : 'border-transparent text-gray-400 hover:text-gray-700'
-            }`}
-          >
-            {tab.label}
-            {tab.id === 'list' && ` (${currentMonthLectures.length})`}
-          </button>
-        ))}
+      <div className="hidden border-b border-[#d9d5c9] bg-[#f3f0e8] md:block">
+        <div className="mx-auto flex max-w-7xl items-center px-7">
+          {tabs.map((tab, index) => (
+            <button key={tab.id} onClick={() => setActiveTab(tab.id)}
+              className={`relative mr-8 py-4 text-xs font-black tracking-[0.04em] transition-colors ${activeTab === tab.id ? 'text-[#171916]' : 'text-[#9a988f] hover:text-[#55564f]'}`}>
+              <span className="mr-2 text-[9px] text-[#aaa89f]">0{index + 1}</span>{tab.label}{tab.id === 'list' && ` ${currentMonthLectures.length}`}
+              {activeTab === tab.id && <span className="absolute inset-x-0 bottom-0 h-[3px] bg-[#171916]" />}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* ── 메인 콘텐츠 (뷰포트 높이를 채움, 내부 스크롤) ── */}
@@ -177,13 +171,17 @@ export const App: React.FC = () => {
         <div className="h-full overflow-y-auto">
 
           {activeTab === 'home' && (
-            <div className="max-w-5xl mx-auto px-3 sm:px-6 py-4">
+            <div className="mx-auto max-w-7xl px-4 py-5 sm:px-7 sm:py-8">
+              <div className="mb-5 flex items-end justify-between sm:mb-7">
+                <div><p className="text-[10px] font-black tracking-[0.18em] text-[#89877e]">OVERVIEW</p><h1 className="mt-1 text-2xl font-black tracking-[-0.055em] sm:text-3xl">이번 달의 강의 원장</h1></div>
+                <p className="hidden max-w-xs text-right text-xs leading-5 text-[#77766e] sm:block">수입과 정산, 강의 시간을<br/>한눈에 확인하세요.</p>
+              </div>
               <DashboardStats lectures={currentMonthLectures} prevMonthTotal={prevMonthTotalFee} />
             </div>
           )}
 
           {activeTab === 'calendar' && (
-            <div className="max-w-5xl mx-auto px-3 sm:px-6 py-4">
+            <div className="max-w-7xl mx-auto px-4 sm:px-7 py-5 sm:py-8">
               <LectureCalendar
                 currentMonth={currentMonth}
                 lectures={currentMonthLectures}
@@ -194,7 +192,7 @@ export const App: React.FC = () => {
           )}
 
           {activeTab === 'list' && (
-            <div className="max-w-5xl mx-auto px-3 sm:px-6 py-4">
+            <div className="max-w-7xl mx-auto px-4 sm:px-7 py-5 sm:py-8">
               <LectureList
                 lectures={currentMonthLectures}
                 onEdit={handleEditLecture}
@@ -205,7 +203,7 @@ export const App: React.FC = () => {
           )}
 
           {activeTab === 'stats' && (
-            <div className="max-w-5xl mx-auto px-3 sm:px-6 py-4 space-y-4">
+            <div className="max-w-7xl mx-auto px-4 sm:px-7 py-5 sm:py-8 space-y-4">
               <MonthlyChart
                 allLectures={lectures}
                 currentMonth={currentMonth}
@@ -219,26 +217,19 @@ export const App: React.FC = () => {
       </main>
 
       {/* ── 모바일 하단 탭바 ── */}
-      <div className="md:hidden flex items-center justify-around bg-white border-t border-gray-200 px-2 py-1.5">
+      <div className="md:hidden flex items-center justify-around bg-[#171916] border-t border-black px-2 py-2">
         {tabs.map((tab) => (
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
-            className={`flex flex-col items-center gap-0.5 py-1 px-3 rounded-lg text-[11px] font-bold transition-colors ${
-              activeTab === tab.id ? 'text-gray-900' : 'text-gray-400'
+            className={`flex flex-col items-center gap-0.5 py-1 px-3 text-[10px] font-bold transition-colors ${
+              activeTab === tab.id ? 'text-[#d9ff57]' : 'text-[#85877f]'
             }`}
           >
             {tab.icon}
             <span>{tab.label}</span>
           </button>
         ))}
-        {/* FAB */}
-        <button
-          onClick={() => handleOpenNewLecture()}
-          className="absolute bottom-16 right-4 w-12 h-12 rounded-full bg-gray-900 text-white flex items-center justify-center shadow-lg active:scale-95 transition-transform"
-        >
-          <Plus className="w-5 h-5 stroke-[2.5]" />
-        </button>
       </div>
 
       {/* ── 모달 ── */}

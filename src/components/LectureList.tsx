@@ -66,13 +66,13 @@ export const LectureList: React.FC<LectureListProps> = ({
   }, [lectures, searchTerm, statusFilter, agencyFilter, sortOrder]);
 
   return (
-    <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+    <div className="bg-[#f8f6ef] border border-[#d4d0c4] overflow-hidden">
       
       {/* Controls Header */}
-      <div className="p-3.5 sm:p-4 border-b border-gray-100 space-y-3">
+      <div className="p-4 sm:p-5 border-b border-[#d4d0c4] space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
           <div>
-            <h3 className="text-sm sm:text-base font-bold text-gray-900">
+            <h3 className="text-base sm:text-lg font-black tracking-[-0.04em] text-[#171916]">
               강의 목록 및 정산 내역
             </h3>
             <p className="text-[11px] text-gray-400 mt-0.5">
@@ -88,18 +88,18 @@ export const LectureList: React.FC<LectureListProps> = ({
               placeholder="강의명, 업체명, 장소 검색..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-8 pr-3 py-1.5 text-xs bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder:text-gray-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+              className="w-full pl-8 pr-3 py-2 text-xs bg-[#eeeadf] border border-[#cec9bd] text-[#171916] placeholder:text-[#98968d] focus:bg-white focus:outline-none focus:border-[#171916]"
             />
           </div>
         </div>
 
         {/* Filters and Sort */}
         <div className="flex flex-wrap items-center gap-2 pt-0.5">
-          <div className="inline-flex p-0.5 bg-gray-100 rounded-xl text-xs font-semibold text-gray-600">
+          <div className="inline-flex p-0.5 bg-[#e9e4d7] text-xs font-semibold text-[#66675f]">
             <button
               onClick={() => setStatusFilter('all')}
               className={`px-2.5 py-1 rounded-lg transition-all ${
-                statusFilter === 'all' ? 'bg-white text-gray-900 shadow-sm font-bold' : 'hover:text-gray-900'
+                statusFilter === 'all' ? 'bg-[#171916] text-white font-bold' : 'hover:text-[#171916]'
               }`}
             >
               전체 ({lectures.length})
@@ -107,7 +107,7 @@ export const LectureList: React.FC<LectureListProps> = ({
             <button
               onClick={() => setStatusFilter('paid')}
               className={`px-2.5 py-1 rounded-lg transition-all ${
-                statusFilter === 'paid' ? 'bg-white text-emerald-700 shadow-sm font-bold' : 'hover:text-gray-900'
+                statusFilter === 'paid' ? 'bg-[#171916] text-[#d9ff57] font-bold' : 'hover:text-[#171916]'
               }`}
             >
               입금 완료 ({lectures.filter(l => l.isPaid).length})
@@ -115,7 +115,7 @@ export const LectureList: React.FC<LectureListProps> = ({
             <button
               onClick={() => setStatusFilter('pending')}
               className={`px-2.5 py-1 rounded-lg transition-all ${
-                statusFilter === 'pending' ? 'bg-white text-amber-700 shadow-sm font-bold' : 'hover:text-gray-900'
+                statusFilter === 'pending' ? 'bg-[#171916] text-[#ffb49f] font-bold' : 'hover:text-[#171916]'
               }`}
             >
               입금 대기 ({lectures.filter(l => !l.isPaid).length})
@@ -159,7 +159,7 @@ export const LectureList: React.FC<LectureListProps> = ({
         <div className="divide-y divide-gray-100">
           
           {/* Desktop Header */}
-          <div className="hidden md:grid grid-cols-12 gap-4 px-5 py-2.5 bg-gray-50 text-xs font-semibold text-gray-500">
+          <div className="hidden md:grid grid-cols-12 gap-4 px-5 py-3 bg-[#e9e4d7] text-[10px] font-black tracking-[0.08em] text-[#77766e]">
             <div className="col-span-2">일시 / 시간</div>
             <div className="col-span-4">강의명 / 위탁업체</div>
             <div className="col-span-2">진행 형태 / 장소</div>
@@ -174,7 +174,7 @@ export const LectureList: React.FC<LectureListProps> = ({
             return (
               <div
                 key={lec.id}
-                className="p-3.5 sm:px-5 sm:py-3.5 hover:bg-gray-50 transition-colors"
+                className="p-3.5 sm:px-5 sm:py-4 hover:bg-white transition-colors"
               >
                 {/* Desktop Layout */}
                 <div className="hidden md:grid grid-cols-12 gap-4 items-center">

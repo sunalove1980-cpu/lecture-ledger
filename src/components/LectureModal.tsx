@@ -146,9 +146,9 @@ export const LectureModal: React.FC<LectureModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-gray-900/40 backdrop-blur-xs flex items-center justify-center p-3 sm:p-5 animate-in fade-in duration-150">
+    <div className="fixed inset-0 z-50 overflow-y-auto bg-[#171916]/60 backdrop-blur-sm flex items-center justify-center p-3 sm:p-5 animate-in fade-in duration-150">
       <div 
-        className="bg-white rounded-3xl max-w-lg w-full shadow-2xl border border-gray-200 overflow-hidden transform transition-all"
+        className="bg-[#f8f6ef] max-w-lg w-full shadow-2xl border border-[#d4d0c4] overflow-hidden transform transition-all"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}

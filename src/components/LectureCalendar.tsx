@@ -46,12 +46,12 @@ export const LectureCalendar: React.FC<LectureCalendarProps> = ({
   const selectedDayLectures = selectedDay ? getLecturesForDay(selectedDay) : [];
 
   return (
-    <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+    <div className="bg-[#f8f6ef] border border-[#d4d0c4] overflow-hidden">
       
       {/* Calendar Header */}
-      <div className="p-3.5 sm:p-4 border-b border-gray-100 flex items-center justify-between">
+      <div className="p-4 sm:p-5 border-b border-[#d4d0c4] flex items-center justify-between">
         <div>
-          <h3 className="text-sm sm:text-base font-bold text-gray-900">
+          <h3 className="text-base sm:text-lg font-black tracking-[-0.04em] text-[#171916]">
             강의 캘린더
           </h3>
           <p className="text-[11px] text-gray-400 mt-0.5">
@@ -71,7 +71,7 @@ export const LectureCalendar: React.FC<LectureCalendarProps> = ({
       </div>
 
       {/* Weekday Row */}
-      <div className="grid grid-cols-7 border-b border-gray-100 bg-gray-50 text-center text-xs font-semibold text-gray-500">
+      <div className="grid grid-cols-7 border-b border-[#d4d0c4] bg-[#e9e4d7] text-center text-[10px] font-black tracking-[0.1em] text-[#77766e]">
         {weekDays.map((day, idx) => (
           <div
             key={day}
@@ -83,7 +83,7 @@ export const LectureCalendar: React.FC<LectureCalendarProps> = ({
       </div>
 
       {/* Days Grid */}
-      <div className="grid grid-cols-7 auto-rows-fr divide-x divide-y divide-gray-100">
+      <div className="grid grid-cols-7 auto-rows-fr divide-x divide-y divide-[#dedacf]">
         {days.map((day, dayIdx) => {
           const dayLectures = getLecturesForDay(day);
           const isCurrMonth = isSameMonth(day, monthStart);
@@ -97,15 +97,15 @@ export const LectureCalendar: React.FC<LectureCalendarProps> = ({
               key={dayIdx}
               onClick={() => setSelectedDay(day)}
               className={`min-h-[85px] sm:min-h-[105px] p-1.5 transition-all cursor-pointer relative group flex flex-col justify-between ${
-                !isCurrMonth ? 'bg-gray-50 text-gray-300' : 'bg-white hover:bg-gray-50'
-              } ${isSelected ? 'ring-2 ring-blue-500 ring-inset bg-blue-50/40' : ''}`}
+                !isCurrMonth ? 'bg-[#efebe2] text-[#b8b4aa]' : 'bg-[#f8f6ef] hover:bg-white'
+              } ${isSelected ? 'ring-2 ring-[#171916] ring-inset bg-[#eef6ce]' : ''}`}
             >
               {/* Day Number and Quick Add */}
               <div className="flex items-center justify-between">
                 <span
                   className={`text-xs font-bold w-5 h-5 sm:w-6 sm:h-6 flex items-center justify-center rounded-full ${
                     isTodayDate
-                      ? 'bg-blue-600 text-white shadow-sm'
+                      ? 'bg-[#171916] text-[#d9ff57]'
                       : isCurrMonth
                       ? day.getDay() === 0
                         ? 'text-red-500'
@@ -190,7 +190,7 @@ export const LectureCalendar: React.FC<LectureCalendarProps> = ({
 
       {/* Selected Day Panel */}
       {selectedDay && (
-        <div className="p-3.5 sm:p-4 bg-gray-50 border-t border-gray-200 animate-in fade-in duration-150">
+        <div className="p-4 sm:p-5 bg-[#e9e4d7] border-t border-[#d4d0c4] animate-in fade-in duration-150">
           <div className="flex items-center justify-between mb-2.5">
             <div className="flex items-center gap-2">
               <h4 className="text-xs sm:text-sm font-bold text-gray-900">

@@ -70,10 +70,10 @@ export const AgencyChart: React.FC<AgencyChartProps> = ({ lectures }) => {
   }
 
   return (
-    <div className="bg-white rounded-2xl p-4 sm:p-5 border border-gray-200 shadow-xs">
+    <div className="bg-[#f8f6ef] p-5 sm:p-6 border border-[#d4d0c4]">
       <div className="flex items-center justify-between mb-3">
         <div>
-          <h3 className="text-sm sm:text-base font-bold text-gray-900">
+          <h3 className="text-base sm:text-lg font-black tracking-[-0.04em] text-[#171916]">
             위탁 / 중개 업체별 분석
           </h3>
           <p className="text-[11px] text-gray-400 mt-0.5">
@@ -123,7 +123,7 @@ export const AgencyChart: React.FC<AgencyChartProps> = ({ lectures }) => {
           {agencyStats.map((stat, idx) => (
             <div
               key={stat.agency}
-              className="flex items-center justify-between p-2 rounded-xl bg-gray-50/70 hover:bg-gray-100/70 transition-colors border border-gray-100"
+              className="flex items-center justify-between p-3 bg-[#e9e4d7] hover:bg-white transition-colors border border-[#d4d0c4]"
             >
               <div className="flex items-center gap-2 min-w-0">
                 <span className={`w-4 h-4 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0 ${

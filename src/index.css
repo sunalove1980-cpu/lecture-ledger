@@ -11,8 +11,8 @@
   html, body {
     margin: 0;
     font-family: "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, system-ui, Roboto, "Helvetica Neue", "Segoe UI", "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", sans-serif;
-    background-color: #f9fafb;
-    color: #111827;
+    background-color: #f3f0e8;
+    color: #171916;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     letter-spacing: -0.02em;
@@ -23,6 +23,11 @@
     font-family: inherit;
     word-break: keep-all;
   }
+}
+
+::selection {
+  background: #d9ff57;
+  color: #171916;
 }
 
 /* Minimal scrollbar */

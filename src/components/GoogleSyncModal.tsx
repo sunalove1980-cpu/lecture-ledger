@@ -144,9 +144,9 @@ export const GoogleSyncModal: React.FC<GoogleSyncModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/30 flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-50 bg-[#171916]/60 backdrop-blur-sm flex items-center justify-center p-4">
       <div
-        className="bg-white rounded-2xl max-w-lg w-full shadow-xl border border-gray-200 overflow-hidden max-h-[90vh] overflow-y-auto"
+        className="bg-[#f8f6ef] max-w-lg w-full shadow-2xl border border-[#d4d0c4] overflow-hidden max-h-[90vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}

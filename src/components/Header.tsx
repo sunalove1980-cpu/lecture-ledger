@@ -1,119 +1,41 @@
 import React from 'react';
-import {
-  ChevronLeft,
-  ChevronRight,
-  Plus,
-  Download,
-  RefreshCw,
-  Calendar,
-} from 'lucide-react';
+import { ChevronLeft, ChevronRight, Plus, Download, RefreshCw } from 'lucide-react';
 import { format, addMonths, subMonths } from 'date-fns';
 import { ko } from 'date-fns/locale';
 
 interface HeaderProps {
-  currentMonth: Date;
-  onMonthChange: (date: Date) => void;
-  onOpenNewLectureModal: () => void;
-  onOpenGoogleSyncModal: () => void;
-  onExportCsv: () => void;
-  onResetData: () => void;
-  isGoogleConnected: boolean;
-  userEmail?: string;
-  isAutoSyncing?: boolean;
+  currentMonth: Date; onMonthChange: (date: Date) => void; onOpenNewLectureModal: () => void;
+  onOpenGoogleSyncModal: () => void; onExportCsv: () => void; onResetData: () => void;
+  isGoogleConnected: boolean; userEmail?: string; isAutoSyncing?: boolean;
 }
 
-export const Header: React.FC<HeaderProps> = ({
-  currentMonth,
-  onMonthChange,
-  onOpenNewLectureModal,
-  onOpenGoogleSyncModal,
-  onExportCsv,
-  isGoogleConnected,
-  userEmail,
-  isAutoSyncing,
-}) => {
-  const handlePrevMonth = () => onMonthChange(subMonths(currentMonth, 1));
-  const handleNextMonth = () => onMonthChange(addMonths(currentMonth, 1));
-  const handleCurrentMonth = () => onMonthChange(new Date());
-
+export const Header: React.FC<HeaderProps> = ({ currentMonth, onMonthChange, onOpenNewLectureModal,
+  onOpenGoogleSyncModal, onExportCsv, isGoogleConnected, userEmail, isAutoSyncing }) => {
   const monthLabel = format(currentMonth, 'yyyy년 M월', { locale: ko });
-
   return (
-    <header className="bg-white border-b border-gray-200">
-      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-14 gap-2">
-
-          {/* Logo */}
-          <div className="flex items-center gap-2 min-w-0">
-            <div className="w-8 h-8 rounded-lg bg-gray-900 text-white flex items-center justify-center shrink-0">
-              <Calendar className="w-4 h-4" />
-            </div>
-            <div className="min-w-0">
-              <h1 className="text-sm sm:text-base font-bold text-gray-900 truncate">
-                강의료 매니저
-              </h1>
-              {isGoogleConnected && userEmail && (
-                <p className="text-[11px] text-gray-400 truncate hidden sm:block">
-                  <span className={`inline-block w-1.5 h-1.5 rounded-full bg-emerald-500 mr-1 ${isAutoSyncing ? 'animate-pulse' : ''}`} />
-                  {userEmail}
-                </p>
-              )}
-            </div>
+    <header className="border-b border-[#d9d5c9] bg-[#f3f0e8]/95 backdrop-blur-xl">
+      <div className="mx-auto flex h-[72px] max-w-7xl items-center justify-between gap-3 px-4 sm:px-7">
+        <div className="flex min-w-0 items-center gap-3">
+          <div className="grid h-10 w-10 shrink-0 place-items-center bg-[#171916] text-sm font-black tracking-[-0.08em] text-[#d9ff57]">LL</div>
+          <div className="hidden min-w-0 sm:block">
+            <p className="truncate text-[15px] font-black leading-none tracking-[-0.04em] text-[#171916]">LECTURE LEDGER</p>
+            <p className="mt-1.5 hidden truncate text-[10px] font-semibold tracking-[0.08em] text-[#77766e] sm:block">
+              {isGoogleConnected && userEmail ? userEmail : 'PERSONAL LECTURE ACCOUNT'}
+            </p>
           </div>
-
-          {/* Month Navigator */}
-          <div className="flex items-center gap-0.5 shrink-0">
-            <button
-              onClick={handlePrevMonth}
-              className="p-1.5 rounded-lg text-gray-500 hover:text-gray-900 hover:bg-gray-100 active:scale-95 transition-all"
-            >
-              <ChevronLeft className="w-4 h-4" />
-            </button>
-            <button
-              onClick={handleCurrentMonth}
-              className="px-2 py-1 text-sm font-bold text-gray-900 rounded-lg hover:bg-gray-100 whitespace-nowrap"
-            >
-              {monthLabel}
-            </button>
-            <button
-              onClick={handleNextMonth}
-              className="p-1.5 rounded-lg text-gray-500 hover:text-gray-900 hover:bg-gray-100 active:scale-95 transition-all"
-            >
-              <ChevronRight className="w-4 h-4" />
-            </button>
-          </div>
-
-          {/* Actions */}
-          <div className="flex items-center gap-1.5 shrink-0">
-            <button
-              onClick={onOpenGoogleSyncModal}
-              title={isGoogleConnected ? '새 캘린더 일정 동기화' : '구글 캘린더 연동'}
-              className={`p-2 rounded-lg transition-colors ${
-                isGoogleConnected
-                  ? 'text-emerald-600 hover:bg-emerald-50'
-                  : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'
-              }`}
-            >
-              <RefreshCw className={`w-4 h-4 ${isAutoSyncing ? 'animate-spin' : ''}`} />
-            </button>
-
-            <button
-              onClick={onExportCsv}
-              title="엑셀 다운로드"
-              className="p-2 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 hidden sm:block"
-            >
-              <Download className="w-4 h-4" />
-            </button>
-
-            <button
-              onClick={onOpenNewLectureModal}
-              className="flex items-center gap-1 px-3 py-1.5 bg-gray-900 hover:bg-gray-800 text-white text-sm font-bold rounded-lg active:scale-95 transition-all"
-            >
-              <Plus className="w-4 h-4 stroke-[2.5]" />
-              <span className="hidden sm:inline">강의 등록</span>
-            </button>
-          </div>
-
+        </div>
+        <div className="flex items-center gap-1 border border-[#d2cec2] bg-[#ebe7dc] p-1">
+          <button onClick={() => onMonthChange(subMonths(currentMonth, 1))} className="p-2 text-[#696961] transition hover:bg-white hover:text-black" aria-label="이전 달"><ChevronLeft className="h-4 w-4" /></button>
+          <button onClick={() => onMonthChange(new Date())} className="min-w-[104px] px-2 text-center text-xs font-black tracking-[-0.02em] text-[#171916] sm:min-w-[126px] sm:text-sm">{monthLabel}</button>
+          <button onClick={() => onMonthChange(addMonths(currentMonth, 1))} className="p-2 text-[#696961] transition hover:bg-white hover:text-black" aria-label="다음 달"><ChevronRight className="h-4 w-4" /></button>
+        </div>
+        <div className="flex shrink-0 items-center gap-1.5">
+          <button onClick={onOpenGoogleSyncModal} title={isGoogleConnected ? '새 캘린더 일정 동기화' : '구글 캘린더 연동'}
+            className={`flex h-10 items-center gap-2 border px-3 text-xs font-extrabold transition ${isGoogleConnected ? 'border-[#171916] bg-[#171916] text-white hover:bg-[#30332d]' : 'border-[#c9c5b9] text-[#55564f] hover:bg-white'}`}>
+            <RefreshCw className={`h-4 w-4 ${isAutoSyncing ? 'animate-spin' : ''}`} /><span className="hidden lg:inline">{isGoogleConnected ? 'SYNC' : 'CONNECT'}</span>
+          </button>
+          <button onClick={onExportCsv} title="엑셀 다운로드" className="hidden h-10 w-10 place-items-center border border-[#c9c5b9] text-[#55564f] transition hover:bg-white sm:grid"><Download className="h-4 w-4" /></button>
+          <button onClick={onOpenNewLectureModal} className="flex h-10 items-center gap-2 bg-[#d9ff57] px-3.5 text-xs font-black text-[#171916] transition hover:bg-[#c9ef48] active:translate-y-px"><Plus className="h-4 w-4 stroke-[2.5]" /><span className="hidden sm:inline">새 강의</span></button>
         </div>
       </div>
     </header>

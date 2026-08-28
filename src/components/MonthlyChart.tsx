@@ -91,11 +91,11 @@ export const MonthlyChart: React.FC<MonthlyChartProps> = ({
   };
 
   return (
-    <div className="bg-white rounded-2xl p-4 sm:p-5 border border-gray-200 shadow-xs">
+    <div className="bg-[#f8f6ef] p-5 sm:p-6 border border-[#d4d0c4]">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
         <div>
           <div className="flex items-center gap-2">
-            <h3 className="text-sm sm:text-base font-bold text-gray-900">
+            <h3 className="text-base sm:text-lg font-black tracking-[-0.04em] text-[#171916]">
               월별 강의료 추이
             </h3>
             <span className="px-2 py-0.5 text-[11px] font-semibold bg-gray-100 text-gray-700 rounded-md">
@@ -150,14 +150,14 @@ export const MonthlyChart: React.FC<MonthlyChartProps> = ({
               dataKey="paidFee" 
               name="입금 완료" 
               stackId="a" 
-              fill="#3b82f6" 
+              fill="#171916"
               radius={[0, 0, 0, 0]} 
             />
             <Bar 
               dataKey="pendingFee" 
               name="입금 대기" 
               stackId="a" 
-              fill="#fbbf24" 
+              fill="#d9ff57"
               radius={[4, 4, 0, 0]} 
             />
           </BarChart>
