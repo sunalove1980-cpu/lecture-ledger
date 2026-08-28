@@ -78,7 +78,7 @@ export async function initTokenClient(clientId: string): Promise<void> {
 
 // ─── Access Token 요청 (구글 로그인 팝업) ──────────────
 
-export function requestAccessToken(): Promise<{ accessToken: string; email: string }> {
+export function requestAccessToken(prompt: '' | 'consent' = 'consent'): Promise<{ accessToken: string; email: string }> {
   return new Promise((resolve, reject) => {
     if (!tokenClient) {
       reject(new Error('initTokenClient를 먼저 호출하세요.'));
@@ -104,7 +104,7 @@ export function requestAccessToken(): Promise<{ accessToken: string; email: stri
       }
     };
 
-    tokenClient.requestAccessToken({ prompt: 'consent' });
+    tokenClient.requestAccessToken({ prompt });
   });
 }
 

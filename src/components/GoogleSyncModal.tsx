@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { X, Calendar, LogIn, CheckCircle2, AlertCircle } from 'lucide-react';
 import type { GoogleCalendarConfig, Lecture } from '../types/lecture';
 import {
@@ -29,8 +29,7 @@ export const GoogleSyncModal: React.FC<GoogleSyncModalProps> = ({
   const [calendarId, setCalendarId] = useState(config.calendarId || 'primary');
   const [isLoading, setIsLoading] = useState(false);
   const [status, setStatus] = useState<{ type: 'success' | 'error' | 'info'; message: string } | null>(null);
-
-  if (!isOpen) return null;
+  const hasStartedQuickSync = useRef(false);
 
   const handleGoogleLogin = async () => {
     if (!googleClientId) {
@@ -46,7 +45,8 @@ export const GoogleSyncModal: React.FC<GoogleSyncModalProps> = ({
       await initTokenClient(googleClientId);
 
       // 2. 구글 로그인 팝업 → Access Token 획득
-      const { accessToken, email } = await requestAccessToken();
+      // 이미 연동한 계정은 별도의 동의 화면 없이 바로 토큰을 갱신합니다.
+      const { accessToken, email } = await requestAccessToken(config.isConnected ? '' : 'consent');
       setAccessToken(accessToken);
 
       setStatus({ type: 'info', message: `${email} 계정으로 캘린더 이벤트를 가져오는 중...` });
@@ -111,6 +111,23 @@ export const GoogleSyncModal: React.FC<GoogleSyncModalProps> = ({
       setIsLoading(false);
     }
   };
+
+  // 연동 완료 후에는 헤더의 동기화 버튼을 누르는 것만으로 즉시 동기화합니다.
+  useEffect(() => {
+    if (!isOpen) {
+      hasStartedQuickSync.current = false;
+      return;
+    }
+
+    if (config.isConnected && !hasStartedQuickSync.current) {
+      hasStartedQuickSync.current = true;
+      void handleGoogleLogin();
+    }
+    // 모달이 열리는 순간에 한 번만 실행합니다.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen]);
+
+  if (!isOpen) return null;
 
   const handleDisconnect = () => {
     onSaveConfig({

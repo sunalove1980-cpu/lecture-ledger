@@ -87,7 +87,7 @@ export const Header: React.FC<HeaderProps> = ({
           <div className="flex items-center gap-1.5 shrink-0">
             <button
               onClick={onOpenGoogleSyncModal}
-              title="구글 캘린더 연동"
+              title={isGoogleConnected ? '새 캘린더 일정 동기화' : '구글 캘린더 연동'}
               className={`p-2 rounded-lg transition-colors ${
                 isGoogleConnected
                   ? 'text-emerald-600 hover:bg-emerald-50'
