@@ -173,7 +173,7 @@ export const App: React.FC = () => {
           {activeTab === 'home' && (
             <div className="mx-auto max-w-7xl px-4 py-5 sm:px-7 sm:py-8">
               <div className="mb-5 flex items-end justify-between sm:mb-7">
-                <div><p className="text-[10px] font-black tracking-[0.18em] text-[#89877e]">OVERVIEW</p><h1 className="mt-1 text-2xl font-black tracking-[-0.055em] sm:text-3xl">이번 달의 강의 원장</h1></div>
+                <div><p className="text-[10px] font-black tracking-[0.18em] text-[#89877e]">OVERVIEW</p><h1 className="mt-1 text-2xl font-black tracking-[-0.055em] sm:text-3xl">이번 달 강의 현황</h1></div>
                 <p className="hidden max-w-xs text-right text-xs leading-5 text-[#77766e] sm:block">수입과 정산, 강의 시간을<br/>한눈에 확인하세요.</p>
               </div>
               <DashboardStats lectures={currentMonthLectures} prevMonthTotal={prevMonthTotalFee} />
@@ -223,7 +223,7 @@ export const App: React.FC = () => {
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
             className={`flex flex-col items-center gap-0.5 py-1 px-3 text-[10px] font-bold transition-colors ${
-              activeTab === tab.id ? 'text-[#d9ff57]' : 'text-[#85877f]'
+              activeTab === tab.id ? 'text-[#d8c7a8]' : 'text-[#85877f]'
             }`}
           >
             {tab.icon}

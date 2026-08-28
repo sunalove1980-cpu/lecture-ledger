@@ -157,7 +157,7 @@ export const MonthlyChart: React.FC<MonthlyChartProps> = ({
               dataKey="pendingFee" 
               name="입금 대기" 
               stackId="a" 
-              fill="#d9ff57"
+              fill="#b98268"
               radius={[4, 4, 0, 0]} 
             />
           </BarChart>

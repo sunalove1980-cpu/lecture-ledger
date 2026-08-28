@@ -98,14 +98,14 @@ export const LectureCalendar: React.FC<LectureCalendarProps> = ({
               onClick={() => setSelectedDay(day)}
               className={`min-h-[85px] sm:min-h-[105px] p-1.5 transition-all cursor-pointer relative group flex flex-col justify-between ${
                 !isCurrMonth ? 'bg-[#efebe2] text-[#b8b4aa]' : 'bg-[#f8f6ef] hover:bg-white'
-              } ${isSelected ? 'ring-2 ring-[#171916] ring-inset bg-[#eef6ce]' : ''}`}
+              } ${isSelected ? 'ring-2 ring-[#171916] ring-inset bg-[#e5e8df]' : ''}`}
             >
               {/* Day Number and Quick Add */}
               <div className="flex items-center justify-between">
                 <span
                   className={`text-xs font-bold w-5 h-5 sm:w-6 sm:h-6 flex items-center justify-center rounded-full ${
                     isTodayDate
-                      ? 'bg-[#171916] text-[#d9ff57]'
+                      ? 'bg-[#171916] text-[#d8c7a8]'
                       : isCurrMonth
                       ? day.getDay() === 0
                         ? 'text-red-500'
