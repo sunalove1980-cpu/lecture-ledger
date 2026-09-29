@@ -1,11 +1,15 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { LoaderCircle, Mic, Square } from 'lucide-react';
+import { LoaderCircle, LogIn, Mic, Square } from 'lucide-react';
 import { getAccessToken } from '../services/googleCalendar';
 
-interface VoiceTranscriberProps { onTranscript: (text: string) => void; }
+interface VoiceTranscriberProps {
+  onTranscript: (text: string) => void;
+  isGoogleConnected?: boolean;
+  onConnectGoogle: () => void;
+}
 type RecorderState = 'idle' | 'recording' | 'transcribing';
 
-export const VoiceTranscriber: React.FC<VoiceTranscriberProps> = ({ onTranscript }) => {
+export const VoiceTranscriber: React.FC<VoiceTranscriberProps> = ({ onTranscript, isGoogleConnected, onConnectGoogle }) => {
   const [state, setState] = useState<RecorderState>('idle');
   const [elapsed, setElapsed] = useState(0);
   const [error, setError] = useState('');
@@ -31,7 +35,7 @@ export const VoiceTranscriber: React.FC<VoiceTranscriberProps> = ({ onTranscript
     setState('transcribing');
     try {
       const accessToken = getAccessToken();
-      if (!accessToken) throw new Error('먼저 상단 SYNC 버튼으로 Google 계정을 연결해 주세요.');
+      if (!accessToken) throw new Error('아래 Google 계정 연결 버튼으로 다시 로그인해 주세요.');
       const audioBase64 = await blobToBase64(blob);
       const result = await fetch('/api/transcribe', {
         method: 'POST',
@@ -86,15 +90,24 @@ export const VoiceTranscriber: React.FC<VoiceTranscriberProps> = ({ onTranscript
     if (recorderRef.current?.state === 'recording') recorderRef.current.stop();
   };
 
+  const hasActiveGoogleSession = Boolean(isGoogleConnected && getAccessToken());
+
   return <div className="mt-2">
-    {state === 'recording' ? (
+    {!hasActiveGoogleSession ? (
+      <>
+        <button type="button" onClick={onConnectGoogle} className="flex w-full items-center justify-center gap-2 border border-[#171916] bg-[#171916] px-3 py-2.5 text-xs font-black text-white transition hover:bg-[#30332d]">
+          <LogIn className="h-4 w-4" /> {isGoogleConnected ? 'Google 계정 다시 연결' : 'Google 계정 연결 후 음성 기록'}
+        </button>
+        <p className="mt-1.5 text-[9px] leading-4 text-[#89877e]">보안을 위해 페이지를 새로 열 때는 Google 로그인이 다시 필요해요.</p>
+      </>
+    ) : state === 'recording' ? (
       <button type="button" onClick={stopRecording} className="flex w-full items-center justify-center gap-2 border border-[#9b513e] bg-[#f4ddd6] px-3 py-2.5 text-xs font-black text-[#813f30]"><span className="h-2 w-2 animate-pulse rounded-full bg-[#9b513e]" /><Square className="h-3.5 w-3.5 fill-current" /> 녹음 종료 · {formatElapsed(elapsed)}</button>
     ) : state === 'transcribing' ? (
       <div className="flex items-center justify-center gap-2 border border-[#c8c3b7] bg-[#e8e3d8] px-3 py-2.5 text-xs font-bold text-[#66675f]"><LoaderCircle className="h-4 w-4 animate-spin" /> Gemini가 음성을 정리하고 있어요…</div>
     ) : (
       <button type="button" onClick={startRecording} className="flex w-full items-center justify-center gap-2 border border-[#69735f] px-3 py-2.5 text-xs font-black text-[#596250] transition hover:bg-[#e5e8df]"><Mic className="h-4 w-4" /> 음성으로 기억할 장면 기록</button>
     )}
-    <p className="mt-1.5 text-[9px] leading-4 text-[#89877e]">최대 3분 · 녹음 종료 시 음성이 Google Gemini로 전송되어 글로 변환됩니다.</p>
+    {hasActiveGoogleSession && <p className="mt-1.5 text-[9px] leading-4 text-[#89877e]">최대 3분 · 녹음 종료 시 음성이 Google Gemini로 전송되어 글로 변환됩니다.</p>}
     {error && <p className="mt-1.5 text-[10px] font-semibold text-[#9b513e]">{error}</p>}
   </div>;
 };

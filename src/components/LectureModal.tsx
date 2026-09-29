@@ -21,6 +21,7 @@ interface LectureModalProps {
   initialLecture?: Lecture | null;
   defaultDate?: string;
   isGoogleConnected?: boolean;
+  onOpenGoogleSyncModal: () => void;
 }
 
 export const LectureModal: React.FC<LectureModalProps> = ({
@@ -30,6 +31,7 @@ export const LectureModal: React.FC<LectureModalProps> = ({
   initialLecture,
   defaultDate,
   isGoogleConnected,
+  onOpenGoogleSyncModal,
 }) => {
   const [title, setTitle] = useState('');
   const [agency, setAgency] = useState('');
@@ -522,7 +524,11 @@ export const LectureModal: React.FC<LectureModalProps> = ({
               <textarea rows={3} value={memorableMoment} onChange={event => setMemorableMoment(event.target.value)}
                 placeholder="참여자의 한마디, 분위기가 바뀐 순간, 다음 강의에도 꼭 살리고 싶은 장면…"
                 className="w-full resize-none border border-[#c8c3b7] bg-[#f8f6ef] px-3 py-2.5 text-xs leading-5 text-[#171916] outline-none placeholder:text-[#9b998f] focus:border-[#69735f]" />
-              <VoiceTranscriber onTranscript={text => setMemorableMoment(current => current ? `${current}\n${text}` : text)} />
+              <VoiceTranscriber
+                onTranscript={text => setMemorableMoment(current => current ? `${current}\n${text}` : text)}
+                isGoogleConnected={isGoogleConnected}
+                onConnectGoogle={onOpenGoogleSyncModal}
+              />
             </div>
           </section>
 
