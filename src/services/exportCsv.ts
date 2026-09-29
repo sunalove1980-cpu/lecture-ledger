@@ -21,7 +21,11 @@ export function exportToCsv(lectures: Lecture[], filename = '강의료_정산내
     '장소 및 상세링크',
     '메모',
     '강의 후 감정',
-    '기억할 장면'
+    '기억할 장면',
+    '내 만족감(5점)',
+    '현장 반응(5점)',
+    '담당자 반응(5점)',
+    '회고 점수 근거'
   ];
 
   // Helper to escape CSV cell
@@ -45,7 +49,11 @@ export function exportToCsv(lectures: Lecture[], filename = '강의료_정산내
     escapeCell(item.locationDetail),
     escapeCell(item.notes),
     escapeCell(item.emotion),
-    escapeCell(item.memorableMoment)
+    escapeCell(item.memorableMoment),
+    item.selfSatisfactionScore?.toString() || '',
+    item.audienceResponseScore?.toString() || '',
+    item.coordinatorResponseScore?.toString() || '',
+    escapeCell(item.reflectionReason)
   ]);
 
   const csvContent = [

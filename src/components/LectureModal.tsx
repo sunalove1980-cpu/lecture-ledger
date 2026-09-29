@@ -46,8 +46,17 @@ export const LectureModal: React.FC<LectureModalProps> = ({
   const [notes, setNotes] = useState('');
   const [emotion, setEmotion] = useState('');
   const [memorableMoment, setMemorableMoment] = useState('');
+  const [selfSatisfactionScore, setSelfSatisfactionScore] = useState<number | undefined>();
+  const [audienceResponseScore, setAudienceResponseScore] = useState<number | undefined>();
+  const [coordinatorResponseScore, setCoordinatorResponseScore] = useState<number | undefined>();
+  const [reflectionReason, setReflectionReason] = useState('');
   const [syncToGCal, setSyncToGCal] = useState(false);
   const emotionOptions = ['뿌듯함', '만족', '편안함', '아쉬움', '긴장', '지침'];
+  const reflectionScores = [1, 2, 3, 4, 5];
+  const selectedScores = [selfSatisfactionScore, audienceResponseScore, coordinatorResponseScore].filter((score): score is number => typeof score === 'number');
+  const overallReflectionScore = selectedScores.length > 0
+    ? Math.round((selectedScores.reduce((sum, score) => sum + score, 0) / selectedScores.length) * 10) / 10
+    : null;
 
   const calculateDuration = (start: string, end: string) => {
     try {
@@ -78,6 +87,10 @@ export const LectureModal: React.FC<LectureModalProps> = ({
       setNotes(initialLecture.notes || '');
       setEmotion(initialLecture.emotion || '');
       setMemorableMoment(initialLecture.memorableMoment || '');
+      setSelfSatisfactionScore(initialLecture.selfSatisfactionScore);
+      setAudienceResponseScore(initialLecture.audienceResponseScore);
+      setCoordinatorResponseScore(initialLecture.coordinatorResponseScore);
+      setReflectionReason(initialLecture.reflectionReason || '');
       setFeeMode('total');
     } else {
       const todayStr = defaultDate || new Date().toISOString().split('T')[0];
@@ -95,6 +108,10 @@ export const LectureModal: React.FC<LectureModalProps> = ({
       setNotes('');
       setEmotion('');
       setMemorableMoment('');
+      setSelfSatisfactionScore(undefined);
+      setAudienceResponseScore(undefined);
+      setCoordinatorResponseScore(undefined);
+      setReflectionReason('');
       setSyncToGCal(!!isGoogleConnected);
     }
   }, [initialLecture, defaultDate, isOpen, isGoogleConnected]);
@@ -149,6 +166,10 @@ export const LectureModal: React.FC<LectureModalProps> = ({
         notes: notes.trim(),
         emotion: emotion.trim(),
         memorableMoment: memorableMoment.trim(),
+        selfSatisfactionScore,
+        audienceResponseScore,
+        coordinatorResponseScore,
+        reflectionReason: reflectionReason.trim(),
       },
       syncToGCal
     );
@@ -461,6 +482,39 @@ export const LectureModal: React.FC<LectureModalProps> = ({
               </div>
               <input type="text" value={emotion} onChange={event => setEmotion(event.target.value)} placeholder="목록에 없는 감정은 직접 적어도 좋아요"
                 className="mt-2 w-full border-0 border-b border-[#c8c3b7] bg-transparent px-0 py-1.5 text-xs font-semibold text-[#171916] outline-none placeholder:font-normal placeholder:text-[#9b998f] focus:border-[#171916]" />
+            </div>
+
+            <div className="border-y border-[#d4d0c4] py-3">
+              <div className="mb-3 flex items-center justify-between gap-3">
+                <div>
+                  <p className="text-[11px] font-bold text-[#55564f]">오늘 강의는 어땠나요?</p>
+                  <p className="mt-0.5 text-[9px] text-[#8b897f]">모두 선택하지 않아도 괜찮아요.</p>
+                </div>
+                <div className="shrink-0 text-right">
+                  <p className="text-[9px] font-bold tracking-[0.08em] text-[#8b897f]">종합 회고점수</p>
+                  <p className="mt-0.5 text-lg font-black tracking-[-0.04em] text-[#171916]">{overallReflectionScore ?? '—'}<span className="ml-0.5 text-[10px] text-[#8b897f]">/ 5</span></p>
+                </div>
+              </div>
+              {[
+                { label: '내 만족감', value: selfSatisfactionScore, setter: setSelfSatisfactionScore },
+                { label: '현장 반응', value: audienceResponseScore, setter: setAudienceResponseScore },
+                { label: '담당자 반응', value: coordinatorResponseScore, setter: setCoordinatorResponseScore },
+              ].map(item => (
+                <div key={item.label} className="mb-2.5 grid grid-cols-[82px_1fr] items-center gap-2 last:mb-0">
+                  <span className="text-[10px] font-bold text-[#66675f]">{item.label}</span>
+                  <div className="grid grid-cols-5 gap-1.5">
+                    {reflectionScores.map(score => (
+                      <button key={score} type="button" aria-label={`${item.label} ${score}점`} onClick={() => item.setter(item.value === score ? undefined : score)}
+                        className={`h-8 border text-[11px] font-black transition ${item.value === score ? 'border-[#171916] bg-[#171916] text-[#d8c7a8]' : 'border-[#c8c3b7] bg-[#f8f6ef] text-[#77766e] hover:border-[#77766e]'}`}>
+                        {score}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ))}
+              <textarea rows={2} value={reflectionReason} onChange={event => setReflectionReason(event.target.value)}
+                placeholder="점수의 근거를 짧게 남겨보세요. 예: 질문이 활발했고 담당자가 다음 강의를 문의함"
+                className="mt-3 w-full resize-none border border-[#c8c3b7] bg-[#f8f6ef] px-3 py-2.5 text-xs leading-5 text-[#171916] outline-none placeholder:text-[#9b998f] focus:border-[#69735f]" />
             </div>
 
             <div>

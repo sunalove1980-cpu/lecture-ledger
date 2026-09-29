@@ -16,6 +16,10 @@ export interface Lecture {
   notes?: string;         // 메모 (담당자, 준비물, 특이사항)
   emotion?: string;       // 강의 후 느낀 감정
   memorableMoment?: string; // 꼭 기억하고 싶은 장면이나 순간
+  selfSatisfactionScore?: number; // 강사 스스로 느낀 만족감 (1~5)
+  audienceResponseScore?: number; // 현장 참여자 반응 (1~5)
+  coordinatorResponseScore?: number; // 담당자 반응 (1~5)
+  reflectionReason?: string; // 회고 점수의 근거
   googleCalendarEventId?: string; // 구글 캘린더 이벤트 ID
   createdAt: string;
   updatedAt: string;
