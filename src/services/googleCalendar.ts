@@ -10,7 +10,7 @@
  *   → 시간, 강의명, 장소, 강의료
  */
 
-const SCOPES = 'https://www.googleapis.com/auth/calendar.readonly';
+const SCOPES = 'openid email https://www.googleapis.com/auth/calendar.readonly';
 
 declare global {
   interface Window {
