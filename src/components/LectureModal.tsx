@@ -6,7 +6,9 @@ import {
   Laptop, 
   Building2, 
   Check, 
-  RefreshCw
+  RefreshCw,
+  Sparkles,
+  Quote
 } from 'lucide-react';
 import type { Lecture, LocationType } from '../types/lecture';
 import { POPULAR_AGENCIES } from '../services/storage';
@@ -41,7 +43,10 @@ export const LectureModal: React.FC<LectureModalProps> = ({
   const [locationType, setLocationType] = useState<LocationType>('online');
   const [locationDetail, setLocationDetail] = useState('');
   const [notes, setNotes] = useState('');
+  const [emotion, setEmotion] = useState('');
+  const [memorableMoment, setMemorableMoment] = useState('');
   const [syncToGCal, setSyncToGCal] = useState(false);
+  const emotionOptions = ['뿌듯함', '만족', '편안함', '아쉬움', '긴장', '지침'];
 
   const calculateDuration = (start: string, end: string) => {
     try {
@@ -70,6 +75,8 @@ export const LectureModal: React.FC<LectureModalProps> = ({
       setLocationType(initialLecture.locationType || 'online');
       setLocationDetail(initialLecture.locationDetail || '');
       setNotes(initialLecture.notes || '');
+      setEmotion(initialLecture.emotion || '');
+      setMemorableMoment(initialLecture.memorableMoment || '');
       setFeeMode('total');
     } else {
       const todayStr = defaultDate || new Date().toISOString().split('T')[0];
@@ -85,6 +92,8 @@ export const LectureModal: React.FC<LectureModalProps> = ({
       setLocationType('online');
       setLocationDetail('Zoom 화상강의');
       setNotes('');
+      setEmotion('');
+      setMemorableMoment('');
       setSyncToGCal(!!isGoogleConnected);
     }
   }, [initialLecture, defaultDate, isOpen, isGoogleConnected]);
@@ -137,6 +146,8 @@ export const LectureModal: React.FC<LectureModalProps> = ({
         locationType,
         locationDetail: locationDetail.trim(),
         notes: notes.trim(),
+        emotion: emotion.trim(),
+        memorableMoment: memorableMoment.trim(),
       },
       syncToGCal
     );
@@ -426,6 +437,38 @@ export const LectureModal: React.FC<LectureModalProps> = ({
               className="w-full px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-medium text-gray-900 focus:bg-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 resize-none"
             />
           </div>
+
+          {/* Post-lecture reflection */}
+          <section className="border border-[#d4d0c4] bg-[#eee9de] p-4 space-y-3.5">
+            <div className="flex items-start gap-2.5">
+              <Sparkles className="mt-0.5 h-4 w-4 shrink-0 text-[#69735f]" />
+              <div>
+                <h4 className="text-xs font-black tracking-[-0.02em] text-[#171916]">강의 후 회고</h4>
+                <p className="mt-0.5 text-[10px] leading-4 text-[#77766e]">강의를 마친 뒤의 감정과 오래 기억하고 싶은 순간을 남겨보세요.</p>
+              </div>
+            </div>
+
+            <div>
+              <label className="mb-1.5 block text-[11px] font-bold text-[#55564f]">지금 내 감정</label>
+              <div className="flex flex-wrap gap-1.5">
+                {emotionOptions.map(option => (
+                  <button key={option} type="button" onClick={() => setEmotion(emotion === option ? '' : option)}
+                    className={`border px-2.5 py-1.5 text-[10px] font-bold transition ${emotion === option ? 'border-[#171916] bg-[#171916] text-[#d8c7a8]' : 'border-[#c8c3b7] bg-[#f8f6ef] text-[#66675f] hover:border-[#77766e]'}`}>
+                    {option}
+                  </button>
+                ))}
+              </div>
+              <input type="text" value={emotion} onChange={event => setEmotion(event.target.value)} placeholder="목록에 없는 감정은 직접 적어도 좋아요"
+                className="mt-2 w-full border-0 border-b border-[#c8c3b7] bg-transparent px-0 py-1.5 text-xs font-semibold text-[#171916] outline-none placeholder:font-normal placeholder:text-[#9b998f] focus:border-[#171916]" />
+            </div>
+
+            <div>
+              <label className="mb-1 flex items-center gap-1.5 text-[11px] font-bold text-[#55564f]"><Quote className="h-3 w-3" /> 꼭 기억하고 싶은 장면</label>
+              <textarea rows={3} value={memorableMoment} onChange={event => setMemorableMoment(event.target.value)}
+                placeholder="참여자의 한마디, 분위기가 바뀐 순간, 다음 강의에도 꼭 살리고 싶은 장면…"
+                className="w-full resize-none border border-[#c8c3b7] bg-[#f8f6ef] px-3 py-2.5 text-xs leading-5 text-[#171916] outline-none placeholder:text-[#9b998f] focus:border-[#69735f]" />
+            </div>
+          </section>
 
           {/* Buttons */}
           <div className="flex items-center justify-end gap-2 pt-2 border-t border-gray-100">

@@ -14,6 +14,8 @@ export interface Lecture {
   locationType: LocationType; // 온라인 / 오프라인
   locationDetail?: string;// 장소 상세 (줌 링크 or 교육장 위치)
   notes?: string;         // 메모 (담당자, 준비물, 특이사항)
+  emotion?: string;       // 강의 후 느낀 감정
+  memorableMoment?: string; // 꼭 기억하고 싶은 장면이나 순간
   googleCalendarEventId?: string; // 구글 캘린더 이벤트 ID
   createdAt: string;
   updatedAt: string;

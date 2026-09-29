@@ -19,7 +19,9 @@ export function exportToCsv(lectures: Lecture[], filename = '강의료_정산내
     '입금확인일',
     '진행방식',
     '장소 및 상세링크',
-    '메모'
+    '메모',
+    '강의 후 감정',
+    '기억할 장면'
   ];
 
   // Helper to escape CSV cell
@@ -41,7 +43,9 @@ export function exportToCsv(lectures: Lecture[], filename = '강의료_정산내
     item.paidDate || '-',
     item.locationType === 'online' ? '온라인' : '오프라인',
     escapeCell(item.locationDetail),
-    escapeCell(item.notes)
+    escapeCell(item.notes),
+    escapeCell(item.emotion),
+    escapeCell(item.memorableMoment)
   ]);
 
   const csvContent = [
