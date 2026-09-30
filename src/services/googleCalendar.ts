@@ -11,6 +11,8 @@
  */
 
 const SCOPES = 'openid email https://www.googleapis.com/auth/calendar.readonly';
+export const GOOGLE_SYNC_START_DATE = '2026-10-01';
+const GOOGLE_SYNC_TIME_MIN = `${GOOGLE_SYNC_START_DATE}T00:00:00+09:00`;
 
 declare global {
   interface Window {
@@ -119,8 +121,8 @@ export async function fetchCalendarEvents(
   const params = new URLSearchParams({
     singleEvents: 'true',
     orderBy: 'startTime',
-    // 기존 강의 기록이 시작된 날짜부터 모두 동기화합니다.
-    timeMin: timeMin || '2023-09-05T00:00:00+09:00',
+    // 수동으로 정리한 과거 기록과 겹치지 않도록 이 날짜 이후만 동기화합니다.
+    timeMin: timeMin || GOOGLE_SYNC_TIME_MIN,
     maxResults: '2500',
   });
 
@@ -251,7 +253,8 @@ export function parseGEventsToLectures(events: any[]): CalendarLecture[] {
   return events
     .filter((event) => {
       const summary = event.summary || '';
-      return summary.includes('[G]');
+      const startRaw = event.start?.dateTime || event.start?.date || '';
+      return summary.includes('[G]') && startRaw.slice(0, 10) >= GOOGLE_SYNC_START_DATE;
     })
     .map((event) => {
       // [G] 접두사 제거

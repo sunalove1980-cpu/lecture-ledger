@@ -7,8 +7,11 @@ import {
   fetchCalendarEvents,
   parseGEventsToLectures,
   setAccessToken,
+  GOOGLE_SYNC_START_DATE,
 } from '../services/googleCalendar';
 import { saveLecture, getLectures } from '../services/storage';
+
+const normalizeLectureText = (value?: string) => (value || '').replace(/\s+/g, '').toLowerCase();
 
 interface GoogleSyncModalProps {
   isOpen: boolean;
@@ -66,21 +69,29 @@ export const GoogleSyncModal: React.FC<GoogleSyncModalProps> = ({
       let addedCount = 0;
       let updatedCount = 0;
       for (const gl of gLectures) {
-        const existing = existingByGCalId.get(gl.googleCalendarEventId);
+        const linkedLecture = existingByGCalId.get(gl.googleCalendarEventId);
+        const matchingManualLecture = linkedLecture ? undefined : existingLectures.find((lecture) =>
+          !lecture.googleCalendarEventId
+          && lecture.date === gl.date
+          && lecture.startTime === gl.startTime
+          && lecture.endTime === gl.endTime
+          && normalizeLectureText(lecture.title) === normalizeLectureText(gl.title),
+        );
+        const existing = linkedLecture || matchingManualLecture;
         saveLecture({
           id: existing?.id,
           title: gl.title,
-          agency: gl.agency,
+          agency: gl.agency || existing?.agency || '',
           date: gl.date,
           startTime: gl.startTime,
           endTime: gl.endTime,
           durationHours: gl.durationHours,
-          totalFee: gl.totalFee,
+          totalFee: gl.totalFee || existing?.totalFee || 0,
           isPaid: existing?.isPaid || false,
           paidDate: existing?.paidDate,
-          locationType: gl.locationDetail ? 'offline' : 'online',
-          locationDetail: gl.locationDetail,
-          notes: gl.notes,
+          locationType: gl.locationDetail ? 'offline' : existing?.locationType || 'online',
+          locationDetail: gl.locationDetail || existing?.locationDetail,
+          notes: gl.notes || existing?.notes,
           googleCalendarEventId: gl.googleCalendarEventId,
         });
         if (existing) updatedCount++;
@@ -228,7 +239,8 @@ export const GoogleSyncModal: React.FC<GoogleSyncModalProps> = ({
           <div className="p-3 rounded-xl bg-gray-50 border border-gray-200 text-xs text-gray-500 leading-relaxed">
             <strong className="text-gray-700">연동 방식:</strong> 구글 캘린더에서 제목에
             <code className="bg-gray-200 px-1.5 py-0.5 rounded font-bold text-gray-800 mx-1">[G]</code>
-            가 포함된 이벤트만 가져와서 강의 일정으로 등록합니다.
+            가 포함된 <strong className="text-gray-700">{GOOGLE_SYNC_START_DATE.replaceAll('-', '.')} 이후 일정만</strong> 가져옵니다.
+            같은 날짜·시간·강의명의 수동 기록이 있으면 새로 만들지 않고 기존 기록과 연결합니다.
           </div>
 
           {/* 로그인 버튼 */}
