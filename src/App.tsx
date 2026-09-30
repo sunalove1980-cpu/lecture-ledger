@@ -240,7 +240,6 @@ export const App: React.FC = () => {
         initialLecture={editingLecture}
         defaultDate={newLectureDefaultDate}
         isGoogleConnected={googleConfig.isConnected}
-        onOpenGoogleSyncModal={() => setIsGoogleModalOpen(true)}
       />
 
       <GoogleSyncModal

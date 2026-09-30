@@ -21,7 +21,6 @@ interface LectureModalProps {
   initialLecture?: Lecture | null;
   defaultDate?: string;
   isGoogleConnected?: boolean;
-  onOpenGoogleSyncModal: () => void;
 }
 
 export const LectureModal: React.FC<LectureModalProps> = ({
@@ -31,7 +30,6 @@ export const LectureModal: React.FC<LectureModalProps> = ({
   initialLecture,
   defaultDate,
   isGoogleConnected,
-  onOpenGoogleSyncModal,
 }) => {
   const [title, setTitle] = useState('');
   const [agency, setAgency] = useState('');
@@ -527,7 +525,6 @@ export const LectureModal: React.FC<LectureModalProps> = ({
               <VoiceTranscriber
                 onTranscript={text => setMemorableMoment(current => current ? `${current}\n${text}` : text)}
                 isGoogleConnected={isGoogleConnected}
-                onConnectGoogle={onOpenGoogleSyncModal}
               />
             </div>
           </section>

@@ -20,14 +20,14 @@ export default async function handler(request, response) {
   const authorization = request.headers.authorization || '';
   const accessToken = authorization.startsWith('Bearer ') ? authorization.slice(7) : '';
   if (!accessToken) {
-    return response.status(401).json({ error: '먼저 Google 계정을 연결해 주세요.' });
+    return response.status(401).json({ error: '먼저 음성 전사용 Google 로그인을 해 주세요.' });
   }
 
   try {
     const userInfoResponse = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
       headers: { Authorization: `Bearer ${accessToken}` },
     });
-    if (!userInfoResponse.ok) return response.status(401).json({ error: 'Google 로그인이 만료되었습니다. 다시 동기화해 주세요.' });
+    if (!userInfoResponse.ok) return response.status(401).json({ error: '음성 전사용 Google 로그인이 만료되었습니다. 다시 로그인해 주세요.' });
 
     const userInfo = await userInfoResponse.json();
     if (userInfo.email?.toLowerCase() !== allowedEmail.toLowerCase()) {

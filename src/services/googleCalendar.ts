@@ -10,7 +10,8 @@
  *   → 시간, 강의명, 장소, 강의료
  */
 
-const SCOPES = 'openid email https://www.googleapis.com/auth/calendar.readonly';
+const CALENDAR_SCOPES = 'openid email https://www.googleapis.com/auth/calendar.readonly';
+const VOICE_SCOPES = 'openid email';
 export const GOOGLE_SYNC_START_DATE = '2026-10-01';
 const GOOGLE_SYNC_TIME_MIN = `${GOOGLE_SYNC_START_DATE}T00:00:00+09:00`;
 
@@ -21,6 +22,7 @@ declare global {
 }
 
 let tokenClient: any = null;
+let voiceTokenClient: any = null;
 let currentAccessToken: string | null = null;
 
 function waitForGoogleIdentityServices(timeoutMs = 10000): Promise<void> {
@@ -73,8 +75,51 @@ export async function initTokenClient(clientId: string): Promise<void> {
   }
   tokenClient = window.google.accounts.oauth2.initTokenClient({
     client_id: clientId,
-    scope: SCOPES,
+    scope: CALENDAR_SCOPES,
     callback: () => {}, // requestAccessToken에서 실제 콜백으로 교체
+  });
+}
+
+// ─── 음성 전사용 Google 로그인 ───────────────────────
+
+export async function initVoiceTokenClient(clientId: string): Promise<void> {
+  await loadGoogleIdentityServices();
+  if (!window.google?.accounts?.oauth2) {
+    throw new Error('Google 로그인 서비스를 초기화할 수 없습니다.');
+  }
+  voiceTokenClient = window.google.accounts.oauth2.initTokenClient({
+    client_id: clientId,
+    scope: VOICE_SCOPES,
+    callback: () => {},
+  });
+}
+
+export function requestVoiceAccessToken(prompt: '' | 'consent' = ''): Promise<{ accessToken: string; email: string }> {
+  return new Promise((resolve, reject) => {
+    if (!voiceTokenClient) {
+      reject(new Error('음성 전사용 Google 로그인을 먼저 준비해 주세요.'));
+      return;
+    }
+
+    voiceTokenClient.callback = async (response: any) => {
+      if (response.error) {
+        reject(new Error(response.error_description || response.error));
+        return;
+      }
+
+      currentAccessToken = response.access_token;
+      try {
+        const userInfo = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+          headers: { Authorization: `Bearer ${currentAccessToken}` },
+        });
+        const info = await userInfo.json();
+        resolve({ accessToken: response.access_token, email: info.email || '' });
+      } catch {
+        resolve({ accessToken: response.access_token, email: '' });
+      }
+    };
+
+    voiceTokenClient.requestAccessToken({ prompt });
   });
 }
 
@@ -356,4 +401,5 @@ export function revokeToken(): void {
   }
   currentAccessToken = null;
   tokenClient = null;
+  voiceTokenClient = null;
 }

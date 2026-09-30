@@ -1,18 +1,24 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { LoaderCircle, LogIn, Mic, Square } from 'lucide-react';
-import { getAccessToken } from '../services/googleCalendar';
+import {
+  getAccessToken,
+  initVoiceTokenClient,
+  requestVoiceAccessToken,
+} from '../services/googleCalendar';
 
 interface VoiceTranscriberProps {
   onTranscript: (text: string) => void;
   isGoogleConnected?: boolean;
-  onConnectGoogle: () => void;
 }
 type RecorderState = 'idle' | 'recording' | 'transcribing';
 
-export const VoiceTranscriber: React.FC<VoiceTranscriberProps> = ({ onTranscript, isGoogleConnected, onConnectGoogle }) => {
+export const VoiceTranscriber: React.FC<VoiceTranscriberProps> = ({ onTranscript, isGoogleConnected }) => {
   const [state, setState] = useState<RecorderState>('idle');
   const [elapsed, setElapsed] = useState(0);
   const [error, setError] = useState('');
+  const [loginMessage, setLoginMessage] = useState('');
+  const [isGoogleSessionReady, setIsGoogleSessionReady] = useState(() => Boolean(getAccessToken()));
+  const [isLoginLoading, setIsLoginLoading] = useState(false);
   const recorderRef = useRef<MediaRecorder | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const chunksRef = useRef<Blob[]>([]);
@@ -35,7 +41,10 @@ export const VoiceTranscriber: React.FC<VoiceTranscriberProps> = ({ onTranscript
     setState('transcribing');
     try {
       const accessToken = getAccessToken();
-      if (!accessToken) throw new Error('아래 Google 계정 연결 버튼으로 다시 로그인해 주세요.');
+      if (!accessToken) {
+        setIsGoogleSessionReady(false);
+        throw new Error('아래 음성 전사용 Google 로그인 버튼으로 다시 로그인해 주세요.');
+      }
       const audioBase64 = await blobToBase64(blob);
       const result = await fetch('/api/transcribe', {
         method: 'POST',
@@ -43,7 +52,10 @@ export const VoiceTranscriber: React.FC<VoiceTranscriberProps> = ({ onTranscript
         body: JSON.stringify({ audioBase64, mimeType: blob.type || 'audio/webm' }),
       });
       const data = await result.json();
-      if (!result.ok) throw new Error(data.error || '음성 전사에 실패했습니다.');
+      if (!result.ok) {
+        if (result.status === 401) setIsGoogleSessionReady(false);
+        throw new Error(data.error || '음성 전사에 실패했습니다.');
+      }
       onTranscript(data.transcript);
       setError('');
     } catch (transcriptionError) {
@@ -90,15 +102,38 @@ export const VoiceTranscriber: React.FC<VoiceTranscriberProps> = ({ onTranscript
     if (recorderRef.current?.state === 'recording') recorderRef.current.stop();
   };
 
-  const hasActiveGoogleSession = Boolean(isGoogleConnected && getAccessToken());
+  const handleVoiceGoogleLogin = async () => {
+    const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID?.trim() || '';
+    if (!googleClientId) {
+      setError('Google 로그인 설정이 아직 완료되지 않았습니다.');
+      return;
+    }
+
+    setIsLoginLoading(true);
+    setError('');
+    setLoginMessage('Google 로그인 창을 열고 있어요…');
+    try {
+      await initVoiceTokenClient(googleClientId);
+      const { email } = await requestVoiceAccessToken(isGoogleConnected ? '' : 'consent');
+      setIsGoogleSessionReady(true);
+      setLoginMessage(`${email || 'Google 계정'}으로 음성 전사 준비 완료`);
+    } catch (loginError) {
+      setLoginMessage('');
+      setError(loginError instanceof Error ? loginError.message : 'Google 로그인에 실패했습니다.');
+    } finally {
+      setIsLoginLoading(false);
+    }
+  };
+
+  const hasActiveGoogleSession = Boolean(isGoogleSessionReady && getAccessToken());
 
   return <div className="mt-2">
     {!hasActiveGoogleSession ? (
       <>
-        <button type="button" onClick={onConnectGoogle} className="flex w-full items-center justify-center gap-2 border border-[#171916] bg-[#171916] px-3 py-2.5 text-xs font-black text-white transition hover:bg-[#30332d]">
-          <LogIn className="h-4 w-4" /> {isGoogleConnected ? 'Google 계정 다시 연결' : 'Google 계정 연결 후 음성 기록'}
+        <button type="button" onClick={handleVoiceGoogleLogin} disabled={isLoginLoading} className="flex w-full items-center justify-center gap-2 border border-[#171916] bg-[#171916] px-3 py-2.5 text-xs font-black text-white transition hover:bg-[#30332d] disabled:cursor-wait disabled:bg-[#66675f]">
+          {isLoginLoading ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <LogIn className="h-4 w-4" />} 음성 전사용 Google 로그인
         </button>
-        <p className="mt-1.5 text-[9px] leading-4 text-[#89877e]">보안을 위해 페이지를 새로 열 때는 Google 로그인이 다시 필요해요.</p>
+        <p className="mt-1.5 text-[9px] leading-4 text-[#89877e]">캘린더를 읽거나 동기화하지 않아요. 페이지를 새로 열면 보안을 위해 다시 로그인해야 합니다.</p>
       </>
     ) : state === 'recording' ? (
       <button type="button" onClick={stopRecording} className="flex w-full items-center justify-center gap-2 border border-[#9b513e] bg-[#f4ddd6] px-3 py-2.5 text-xs font-black text-[#813f30]"><span className="h-2 w-2 animate-pulse rounded-full bg-[#9b513e]" /><Square className="h-3.5 w-3.5 fill-current" /> 녹음 종료 · {formatElapsed(elapsed)}</button>
@@ -108,6 +143,7 @@ export const VoiceTranscriber: React.FC<VoiceTranscriberProps> = ({ onTranscript
       <button type="button" onClick={startRecording} className="flex w-full items-center justify-center gap-2 border border-[#69735f] px-3 py-2.5 text-xs font-black text-[#596250] transition hover:bg-[#e5e8df]"><Mic className="h-4 w-4" /> 음성으로 기억할 장면 기록</button>
     )}
     {hasActiveGoogleSession && <p className="mt-1.5 text-[9px] leading-4 text-[#89877e]">최대 3분 · 녹음 종료 시 음성이 Google Gemini로 전송되어 글로 변환됩니다.</p>}
+    {loginMessage && <p className="mt-1.5 text-[10px] font-semibold text-[#596250]">{loginMessage}</p>}
     {error && <p className="mt-1.5 text-[10px] font-semibold text-[#9b513e]">{error}</p>}
   </div>;
 };
