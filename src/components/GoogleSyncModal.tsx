@@ -11,8 +11,6 @@ import {
 } from '../services/googleCalendar';
 import { saveLecture, getLectures } from '../services/storage';
 
-const normalizeLectureText = (value?: string) => (value || '').replace(/\s+/g, '').toLowerCase();
-
 interface GoogleSyncModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -74,8 +72,7 @@ export const GoogleSyncModal: React.FC<GoogleSyncModalProps> = ({
           !lecture.googleCalendarEventId
           && lecture.date === gl.date
           && lecture.startTime === gl.startTime
-          && lecture.endTime === gl.endTime
-          && normalizeLectureText(lecture.title) === normalizeLectureText(gl.title),
+          && lecture.endTime === gl.endTime,
         );
         const existing = linkedLecture || matchingManualLecture;
         saveLecture({
@@ -240,7 +237,7 @@ export const GoogleSyncModal: React.FC<GoogleSyncModalProps> = ({
             <strong className="text-gray-700">연동 방식:</strong> 구글 캘린더에서 제목에
             <code className="bg-gray-200 px-1.5 py-0.5 rounded font-bold text-gray-800 mx-1">[G]</code>
             가 포함된 <strong className="text-gray-700">{GOOGLE_SYNC_START_DATE.replaceAll('-', '.')} 이후 일정만</strong> 가져옵니다.
-            같은 날짜·시간·강의명의 수동 기록이 있으면 새로 만들지 않고 기존 기록과 연결합니다.
+            같은 날짜·시간의 수동 기록이 있으면 새로 만들지 않고 기존 기록과 연결합니다.
           </div>
 
           {/* 로그인 버튼 */}
