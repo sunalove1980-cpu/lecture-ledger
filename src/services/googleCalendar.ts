@@ -90,6 +90,7 @@ export async function initVoiceTokenClient(clientId: string): Promise<void> {
   voiceTokenClient = window.google.accounts.oauth2.initTokenClient({
     client_id: clientId,
     scope: VOICE_SCOPES,
+    include_granted_scopes: false,
     callback: () => {},
   });
 }
