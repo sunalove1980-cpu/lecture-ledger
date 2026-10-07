@@ -12,7 +12,9 @@
 
 const CALENDAR_SCOPES = 'openid email https://www.googleapis.com/auth/calendar.readonly';
 const VOICE_SCOPES = 'openid email';
-export const GOOGLE_SYNC_START_DATE = '2026-10-01';
+export const GOOGLE_SYNC_START_DATE = '2026-10-07';
+export const GOOGLE_SYNC_CREATED_MIN = '2026-10-07T00:00:00+09:00';
+export const GOOGLE_SYNC_SOURCE_MARKER = '등록: 루미';
 const GOOGLE_SYNC_TIME_MIN = `${GOOGLE_SYNC_START_DATE}T00:00:00+09:00`;
 
 declare global {
@@ -167,7 +169,7 @@ export async function fetchCalendarEvents(
   const params = new URLSearchParams({
     singleEvents: 'true',
     orderBy: 'startTime',
-    // 수동으로 정리한 과거 기록과 겹치지 않도록 이 날짜 이후만 동기화합니다.
+    // 조회 범위와 별도로 변환 시 출처 및 실제 생성 시각을 검사합니다.
     timeMin: timeMin || GOOGLE_SYNC_TIME_MIN,
     maxResults: '2500',
   });
@@ -191,6 +193,10 @@ export async function fetchCalendarEvents(
     }
 
     const data = await response.json();
+    if (!data || (data.items !== undefined && !Array.isArray(data.items))
+      || (data.nextPageToken !== undefined && typeof data.nextPageToken !== 'string')) {
+      throw new Error('캘린더 응답 형식이 올바르지 않습니다. 기존 기록은 변경하지 않았습니다.');
+    }
     events.push(...(data.items || []));
     pageToken = data.nextPageToken;
   } while (pageToken);
@@ -207,18 +213,18 @@ function parseFee(text: string): number {
   const trimmed = text.trim().replace(/,/g, '');
 
   // "23만원", "23만", "1.5만원"
-  const manMatch = trimmed.match(/(\d+(?:\.\d+)?)\s*만\s*원?/);
+  const manMatch = trimmed.match(/^(\d+(?:\.\d+)?)\s*만\s*원?$/);
   if (manMatch) {
     return Math.round(parseFloat(manMatch[1]) * 10000);
   }
 
   // "230000원", "230000"
-  const wonMatch = trimmed.match(/(\d+)\s*원?$/);
+  const wonMatch = trimmed.match(/^(\d+)\s*원?$/);
   if (wonMatch) {
     return parseInt(wonMatch[1], 10);
   }
 
-  return 0;
+  throw new Error(`강의료 형식 오류: ${text}`);
 }
 
 /**
@@ -226,7 +232,7 @@ function parseFee(text: string): number {
  */
 function parseTimeRange(text: string): { startTime: string; endTime: string } | null {
   const points = text.trim().split(/\s*[~～\-–]\s*/);
-  if (points.length < 2) return null;
+  if (points.length !== 2) return null;
 
   const parseTimePoint = (point: string) => {
     const match = point.trim().match(
@@ -286,8 +292,10 @@ export interface CalendarLecture {
  *
  * 지원하는 형식:
  *   [G] 9~11시, CS 강의, 패스트캠퍼스, 23만원
- *   [G] 10시~12시, AI 특강, 온라인
- *   [G] 강의제목
+ *   [G] AI 특강, 온라인, 23만원
+ *
+ * 설명의 독립된 줄에 등록: 루미 표시와 생성 시각 기준이 필요합니다.
+ * 금액 누락/오류는 전체 가져오기를 중단하여 저장된 기록을 보존합니다.
  *
  * 쉼표로 구분된 필드:
  *   1번째: 시간 (15시~17시) — 없으면 캘린더 이벤트 시간 사용
@@ -298,9 +306,16 @@ export interface CalendarLecture {
 export function parseGEventsToLectures(events: any[]): CalendarLecture[] {
   return events
     .filter((event) => {
-      const summary = event.summary || '';
+      if (!event || typeof event !== 'object') throw new Error('잘못된 캘린더 일정입니다.');
+      const summary = typeof event.summary === 'string' ? event.summary : '';
+      const created = typeof event.created === 'string' ? Date.parse(event.created) : NaN;
       const startRaw = event.start?.dateTime || event.start?.date || '';
-      return summary.includes('[G]') && startRaw.slice(0, 10) >= GOOGLE_SYNC_START_DATE;
+      return event.status !== 'cancelled'
+        && summary.trimStart().startsWith('[G]')
+        && typeof event.description === 'string'
+        && event.description.split(/\r?\n/).some((line: string) => line.trim() === GOOGLE_SYNC_SOURCE_MARKER)
+        && Number.isFinite(created) && created >= Date.parse(GOOGLE_SYNC_CREATED_MIN)
+        && typeof startRaw === 'string' && startRaw.slice(0, 10) >= GOOGLE_SYNC_START_DATE;
     })
     .map((event) => {
       // [G] 접두사 제거
@@ -309,22 +324,34 @@ export function parseGEventsToLectures(events: any[]): CalendarLecture[] {
       // 캘린더 이벤트 자체의 시간 정보 (fallback)
       const startRaw = event.start?.dateTime || event.start?.date;
       const endRaw = event.end?.dateTime || event.end?.date;
+      if (typeof event.id !== 'string' || !event.id || !event.start?.dateTime || !event.end?.dateTime) {
+        throw new Error('루미 일정의 ID 또는 시작·종료 시각이 없습니다.');
+      }
       const startDate = new Date(startRaw);
       const endDate = new Date(endRaw);
 
-      // ISO UTC 변환으로 한국 시간의 날짜가 전날로 바뀌지 않도록
-      // Calendar 응답에 기록된 현지 날짜 부분을 그대로 사용합니다.
-      const eventDate = startRaw.slice(0, 10);
-      let eventStartTime = startDate.toTimeString().slice(0, 5);
-      let eventEndTime = endDate.toTimeString().slice(0, 5);
+      // 브라우저의 시간대와 무관하게 한국 현지 날짜와 시간을 사용합니다.
+      if (!Number.isFinite(startDate.getTime()) || !Number.isFinite(endDate.getTime()) || endDate <= startDate) {
+        throw new Error('루미 일정의 날짜·시간이 올바르지 않습니다.');
+      }
+      const localParts = (date: Date) => Object.fromEntries(new Intl.DateTimeFormat('en-CA', {
+        timeZone: 'Asia/Seoul', year: 'numeric', month: '2-digit', day: '2-digit',
+        hour: '2-digit', minute: '2-digit', hourCycle: 'h23',
+      }).formatToParts(date).map(({ type, value }) => [type, value]));
+      const start = localParts(startDate);
+      const end = localParts(endDate);
+      const eventDate = `${start.year}-${start.month}-${start.day}`;
+      let eventStartTime = `${start.hour}:${start.minute}`;
+      let eventEndTime = `${end.hour}:${end.minute}`;
 
       // 쉼표로 분리
       const parts = rawText.split(',').map((p: string) => p.trim());
+      if (parts.length > 4) throw new Error('강의 제목 형식을 확인해 주세요. 금액은 23만원처럼 입력해 주세요.');
 
       let title = rawText;
       let agency = '';
       const locationDetail: string | undefined = event.location || undefined;
-      let totalFee = 0;
+      let totalFee = NaN;
 
       if (parts.length >= 4) {
         // [G] 9~11시, CS 강의, 패스트캠퍼스, 23만원
@@ -363,11 +390,16 @@ export function parseGEventsToLectures(events: any[]): CalendarLecture[] {
       }
       // parts.length === 1: title = rawText (이미 설정됨)
 
+      if (!title || !Number.isSafeInteger(totalFee) || totalFee < 0) {
+        throw new Error('루미 일정의 강의명 또는 강의료를 확인해 주세요. 기존 기록은 변경하지 않았습니다.');
+      }
+
       // 시간 차이 계산
       const [startH, startM] = eventStartTime.split(':').map(Number);
       const [endH, endM] = eventEndTime.split(':').map(Number);
       const durationMinutes = endH * 60 + endM - (startH * 60 + startM);
-      const durationHours = durationMinutes > 0 ? durationMinutes / 60 : 1;
+      if (durationMinutes <= 0) throw new Error('강의 시작·종료 시간을 확인해 주세요.');
+      const durationHours = durationMinutes / 60;
 
       return {
         googleCalendarEventId: event.id,

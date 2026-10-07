@@ -1,4 +1,5 @@
 import type { Lecture, GoogleCalendarConfig } from '../types/lecture';
+import type { CalendarLecture } from './googleCalendar';
 
 const STORAGE_KEY = 'lecture_fee_manager_lectures_v1';
 const GOOGLE_CONFIG_KEY = 'lecture_fee_manager_google_config_v2';
@@ -56,6 +57,59 @@ export function getLectures(): Lecture[] {
     console.error('Failed to parse lectures from localStorage:', err);
     return [];
   }
+}
+
+// Keep the v1 array and all legacy/unknown fields. Never use getLectures' UI
+// fallback here: corrupt or incompatible data must stop the import.
+export const CALENDAR_BACKUP_KEY = `${STORAGE_KEY}_before_lumi_append_v1`;
+export function appendCalendarLectures(candidates: CalendarLecture[]) {
+  const original = localStorage.getItem(STORAGE_KEY);
+  const existing = original === null ? [] : JSON.parse(original);
+  if (!Array.isArray(existing) || existing.some((item) => !item || typeof item !== 'object' || Array.isArray(item))) {
+    throw new Error('기존 기록을 읽을 수 없어 동기화를 중단했습니다.');
+  }
+  const next: Lecture[] = [...existing];
+  let duplicateCount = 0;
+  const normalize = (value: unknown) => typeof value === 'string' ? value.trim().replace(/\s+/g, ' ') : '';
+  for (const candidate of candidates) {
+    if (!candidate.googleCalendarEventId || !candidate.title || !Number.isSafeInteger(candidate.totalFee)
+      || candidate.totalFee < 0 || !Number.isFinite(candidate.durationHours) || candidate.durationHours <= 0) {
+      throw new Error('추가할 강의 데이터가 올바르지 않습니다.');
+    }
+    const duplicate = next.some((lecture) =>
+      lecture.googleCalendarEventId === candidate.googleCalendarEventId
+      || (lecture.date === candidate.date && lecture.startTime === candidate.startTime
+        && lecture.endTime === candidate.endTime && normalize(lecture.title) === normalize(candidate.title)
+        && normalize(lecture.agency) === normalize(candidate.agency)),
+    );
+    if (duplicate) { duplicateCount++; continue; }
+    const now = new Date().toISOString();
+    next.push({
+      ...candidate, id: `lec_${crypto.randomUUID()}`, createdAt: now, updatedAt: now,
+      isPaid: false, locationType: candidate.locationDetail ? 'offline' : 'online',
+    });
+  }
+  const addedCount = next.length - existing.length;
+  if (addedCount) {
+    // Preserve original JSON text too (including unknown numeric fields), appending
+    // only inside the existing array. Validate before the single atomic setItem.
+    const base = original === null ? '[]' : original;
+    const closing = base.lastIndexOf(']');
+    const additions = JSON.stringify(next.slice(existing.length)).slice(1, -1);
+    const serialized = base.slice(0, closing) + (existing.length ? ',' : '') + additions + base.slice(closing);
+    const verified = JSON.parse(serialized);
+    if (verified.length !== next.length || JSON.stringify(verified.slice(0, existing.length)) !== JSON.stringify(existing)) {
+      throw new Error('기존 기록 보존 검증에 실패했습니다.');
+    }
+    if (localStorage.getItem(CALENDAR_BACKUP_KEY) === null) {
+      const backup = JSON.stringify({ original, backedUpAt: new Date().toISOString() });
+      localStorage.setItem(CALENDAR_BACKUP_KEY, backup);
+      if (localStorage.getItem(CALENDAR_BACKUP_KEY) !== backup) throw new Error('로컬 백업 검증에 실패했습니다.');
+    }
+    if (localStorage.getItem(STORAGE_KEY) !== original) throw new Error('기록이 변경되어 동기화를 중단했습니다. 다시 시도해 주세요.');
+    localStorage.setItem(STORAGE_KEY, serialized);
+  }
+  return { lectures: next, addedCount, duplicateCount };
 }
 
 export function saveLectures(lectures: Lecture[]): void {

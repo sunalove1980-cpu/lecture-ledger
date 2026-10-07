@@ -4,12 +4,10 @@ import type { GoogleCalendarConfig, Lecture } from '../types/lecture';
 import {
   initTokenClient,
   requestAccessToken,
-  fetchCalendarEvents,
-  parseGEventsToLectures,
   setAccessToken,
   GOOGLE_SYNC_START_DATE,
 } from '../services/googleCalendar';
-import { saveLecture, getLectures } from '../services/storage';
+import { syncLumiCalendar, formatSyncSummary } from '../services/calendarSync';
 
 interface GoogleSyncModalProps {
   isOpen: boolean;
@@ -52,48 +50,8 @@ export const GoogleSyncModal: React.FC<GoogleSyncModalProps> = ({
 
       setStatus({ type: 'info', message: `${email} 계정으로 캘린더 이벤트를 가져오는 중...` });
 
-      // 3. 캘린더에서 이벤트 가져오기
-      const events = await fetchCalendarEvents(accessToken, calendarId.trim() || 'primary');
-
-      // 4. [G] 이벤트 필터링
-      const gLectures = parseGEventsToLectures(events);
-
-      // 5. 기존 강의 데이터와 병합 (중복 방지)
-      const existingLectures = getLectures();
-      const existingByGCalId = new Map(
-        existingLectures.filter((l) => l.googleCalendarEventId).map((l) => [l.googleCalendarEventId, l]),
-      );
-
-      let addedCount = 0;
-      let updatedCount = 0;
-      for (const gl of gLectures) {
-        const linkedLecture = existingByGCalId.get(gl.googleCalendarEventId);
-        const matchingManualLecture = linkedLecture ? undefined : existingLectures.find((lecture) =>
-          !lecture.googleCalendarEventId
-          && lecture.date === gl.date
-          && lecture.startTime === gl.startTime
-          && lecture.endTime === gl.endTime,
-        );
-        const existing = linkedLecture || matchingManualLecture;
-        saveLecture({
-          id: existing?.id,
-          title: gl.title,
-          agency: gl.agency || existing?.agency || '',
-          date: gl.date,
-          startTime: gl.startTime,
-          endTime: gl.endTime,
-          durationHours: gl.durationHours,
-          totalFee: gl.totalFee || existing?.totalFee || 0,
-          isPaid: existing?.isPaid || false,
-          paidDate: existing?.paidDate,
-          locationType: gl.locationDetail ? 'offline' : existing?.locationType || 'online',
-          locationDetail: gl.locationDetail || existing?.locationDetail,
-          notes: gl.notes || existing?.notes,
-          googleCalendarEventId: gl.googleCalendarEventId,
-        });
-        if (existing) updatedCount++;
-        else addedCount++;
-      }
+      const result = await syncLumiCalendar(accessToken, calendarId.trim() || 'primary');
+      onSyncComplete(result.lectures);
 
       // 6. 설정 저장
       const newConfig: GoogleCalendarConfig = {
@@ -103,14 +61,12 @@ export const GoogleSyncModal: React.FC<GoogleSyncModalProps> = ({
         userEmail: email,
         lastSyncedAt: new Date().toISOString(),
       };
-      onSaveConfig(newConfig);
-
-      // 7. 최신 데이터로 콜백
-      onSyncComplete(getLectures());
+      let configWarning = '';
+      try { onSaveConfig(newConfig); } catch { configWarning = ' 연결 설정 저장은 실패했습니다.'; }
 
       setStatus({
         type: 'success',
-        message: `${email} 동기화 완료! 신규 ${addedCount}건 추가, 기존 ${updatedCount}건 갱신.`,
+        message: `${formatSyncSummary(result)}${configWarning}`,
       });
     } catch (err: any) {
       console.error('Google Sync Error:', err);
@@ -204,6 +160,7 @@ export const GoogleSyncModal: React.FC<GoogleSyncModalProps> = ({
                 </div>
                 <button
                   onClick={handleDisconnect}
+                  disabled={isLoading}
                   className="px-3 py-1.5 text-xs font-semibold text-red-600 bg-white border border-red-200 rounded-lg hover:bg-red-50"
                 >
                   연동 해제
@@ -236,8 +193,9 @@ export const GoogleSyncModal: React.FC<GoogleSyncModalProps> = ({
           <div className="p-3 rounded-xl bg-gray-50 border border-gray-200 text-xs text-gray-500 leading-relaxed">
             <strong className="text-gray-700">연동 방식:</strong> 구글 캘린더에서 제목에
             <code className="bg-gray-200 px-1.5 py-0.5 rounded font-bold text-gray-800 mx-1">[G]</code>
-            가 포함된 <strong className="text-gray-700">{GOOGLE_SYNC_START_DATE.replaceAll('-', '.')} 이후 일정만</strong> 가져옵니다.
-            같은 날짜·시간의 수동 기록이 있으면 새로 만들지 않고 기존 기록과 연결합니다.
+            로 시작하고 설명에 <strong className="text-gray-700">등록: 루미</strong>가 한 줄로 표시된 일정 중,
+            <strong className="text-gray-700"> {GOOGLE_SYNC_START_DATE.replaceAll('-', '.')} 00:00 (한국 시간) 이후 생성된 새 일정만</strong> 추가합니다.
+            중복은 건너뛰며 기존 수입·입금 여부·메모는 변경하지 않습니다. 처음 추가하기 전에 이 브라우저에 원본을 백업합니다.
           </div>
 
           {/* 로그인 버튼 */}
