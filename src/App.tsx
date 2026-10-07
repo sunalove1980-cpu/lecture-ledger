@@ -18,6 +18,7 @@ import { LectureCalendar } from './components/LectureCalendar';
 import { LectureList } from './components/LectureList';
 import { LectureModal } from './components/LectureModal';
 import { GoogleSyncModal } from './components/GoogleSyncModal';
+import { GOOGLE_SYNC_START_DATE } from './services/googleCalendar';
 import {
   LayoutDashboard,
   Calendar as CalendarIcon,
@@ -175,6 +176,10 @@ export const App: React.FC = () => {
               <div className="mb-5 flex items-end justify-between sm:mb-7">
                 <div><p className="text-[10px] font-black tracking-[0.18em] text-[#89877e]">OVERVIEW</p><h1 className="mt-1 text-2xl font-black tracking-[-0.055em] sm:text-3xl">이번 달 강의 현황</h1></div>
                 <p className="hidden max-w-xs text-right text-xs leading-5 text-[#77766e] sm:block">수입과 정산, 강의 시간을<br/>한눈에 확인하세요.</p>
+              </div>
+              <div className="mb-4 flex flex-wrap items-center justify-between gap-x-3 gap-y-1 border border-[#d9d5c9] bg-[#f8f6ef] px-3 py-2 text-xs leading-5 text-[#55564f]">
+                <span className="font-semibold">새 일정만 추가 · 기존 기록 보존</span>
+                <span>동기화 기준 {GOOGLE_SYNC_START_DATE.replaceAll('-', '.')}</span>
               </div>
               <DashboardStats lectures={currentMonthLectures} prevMonthTotal={prevMonthTotalFee} />
             </div>

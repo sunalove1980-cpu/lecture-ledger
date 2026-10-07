@@ -30,7 +30,7 @@ export const Header: React.FC<HeaderProps> = ({ currentMonth, onMonthChange, onO
           <button onClick={() => onMonthChange(addMonths(currentMonth, 1))} className="p-2 text-[#696961] transition hover:bg-white hover:text-black" aria-label="다음 달"><ChevronRight className="h-4 w-4" /></button>
         </div>
         <div className="flex shrink-0 items-center gap-1.5">
-          <button onClick={onOpenGoogleSyncModal} title={isGoogleConnected ? '새 캘린더 일정 동기화' : 'Google 계정 연결'} aria-label={isGoogleConnected ? 'Google 캘린더 동기화' : 'Google 계정 연결'}
+          <button onClick={onOpenGoogleSyncModal} title={isGoogleConnected ? '동기화 안내 열기' : 'Google 계정 연결 안내 열기'} aria-label={isGoogleConnected ? 'Google 캘린더 동기화' : 'Google 계정 연결'}
             className={`flex h-10 items-center gap-1 border px-2 text-[10px] font-extrabold transition sm:gap-2 sm:px-3 sm:text-xs ${isGoogleConnected ? 'border-[#171916] bg-[#171916] text-white hover:bg-[#30332d]' : 'border-[#c9c5b9] text-[#55564f] hover:bg-white'}`}>
             <RefreshCw className={`h-3.5 w-3.5 sm:h-4 sm:w-4 ${isAutoSyncing ? 'animate-spin' : ''}`} /><span>{isGoogleConnected ? '동기화' : '구글'}</span>
           </button>

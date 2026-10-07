@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useState } from 'react';
 import { X, Calendar, LogIn, CheckCircle2, AlertCircle } from 'lucide-react';
 import type { GoogleCalendarConfig, Lecture } from '../types/lecture';
 import {
@@ -28,7 +28,6 @@ export const GoogleSyncModal: React.FC<GoogleSyncModalProps> = ({
   const [calendarId, setCalendarId] = useState(config.calendarId || 'primary');
   const [isLoading, setIsLoading] = useState(false);
   const [status, setStatus] = useState<{ type: 'success' | 'error' | 'info'; message: string } | null>(null);
-  const hasStartedQuickSync = useRef(false);
 
   const handleGoogleLogin = async () => {
     if (!googleClientId) {
@@ -79,21 +78,6 @@ export const GoogleSyncModal: React.FC<GoogleSyncModalProps> = ({
     }
   };
 
-  // 연동 완료 후에는 헤더의 동기화 버튼을 누르는 것만으로 즉시 동기화합니다.
-  useEffect(() => {
-    if (!isOpen) {
-      hasStartedQuickSync.current = false;
-      return;
-    }
-
-    if (config.isConnected && !hasStartedQuickSync.current) {
-      hasStartedQuickSync.current = true;
-      void handleGoogleLogin();
-    }
-    // 모달이 열리는 순간에 한 번만 실행합니다.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isOpen]);
-
   if (!isOpen) return null;
 
   const handleDisconnect = () => {
@@ -119,7 +103,7 @@ export const GoogleSyncModal: React.FC<GoogleSyncModalProps> = ({
             <Calendar className="w-5 h-5 text-gray-700" />
             <h3 className="text-base font-bold text-gray-900">구글 캘린더 연동</h3>
           </div>
-          <button onClick={onClose} className="p-1.5 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100">
+          <button onClick={onClose} aria-label="구글 캘린더 연동 창 닫기" className="p-1.5 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100">
             <X className="w-4 h-4" />
           </button>
         </div>
@@ -198,14 +182,18 @@ export const GoogleSyncModal: React.FC<GoogleSyncModalProps> = ({
             중복은 건너뛰며 기존 수입·입금 여부·메모는 변경하지 않습니다. 처음 추가하기 전에 이 브라우저에 원본을 백업합니다.
           </div>
 
-          {/* 로그인 버튼 */}
+          <p className="text-xs leading-relaxed text-gray-600">
+            아래 버튼을 눌렀을 때만 Google 인증과 새 일정 가져오기를 시작합니다.
+          </p>
+
+          {/* 사용자가 직접 요청할 때만 인증과 가져오기를 시작합니다. */}
           <button
             onClick={handleGoogleLogin}
             disabled={isLoading || !googleClientId}
             className="w-full py-3 bg-gray-900 hover:bg-gray-800 disabled:bg-gray-300 text-white font-bold rounded-xl transition-colors flex items-center justify-center gap-2"
           >
             <LogIn className="w-4 h-4" />
-            {isLoading ? '연동 중...' : config.isConnected ? '다시 동기화' : '구글로 로그인 & 캘린더 연동'}
+            {isLoading ? '가져오는 중...' : config.isConnected ? '새 일정 가져오기' : '구글 계정 연결 후 새 일정 가져오기'}
           </button>
         </div>
       </div>
