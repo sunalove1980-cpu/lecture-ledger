@@ -287,6 +287,29 @@ export interface CalendarLecture {
   notes?: string;
 }
 
+/** Read Calendar rich text as lines without mounting or executing its HTML. */
+export function hasLumiSourceMarker(description: string): boolean {
+  let text = description;
+  if (/[<&]/.test(description)) {
+    // Template content is inert: never attach it to the document or execute it.
+    // Native HTML parsing decodes entities once and keeps attributes out of text.
+    const template = document.createElement('template');
+    template.innerHTML = description;
+    const read = (node: Node): string => {
+      if (node.nodeType === 3) return node.textContent || '';
+      if (node.nodeType !== 1 && node.nodeType !== 11) return '';
+      const tag = node.nodeType === 1 ? (node as Element).tagName.toLowerCase() : '';
+      if (['script', 'style', 'template', 'noscript'].includes(tag)) return '';
+      if (tag === 'br') return '\n';
+      const content = Array.from(node.childNodes, read).join('');
+      return ['p', 'div'].includes(tag) ? `\n${content}\n` : content;
+    };
+    text = read(template.content);
+  }
+  return text.replace(/\u00a0/g, ' ').split(/\r\n?|\n/)
+    .some((line) => line.trim() === GOOGLE_SYNC_SOURCE_MARKER);
+}
+
 /**
  * [G] 이벤트를 강의 데이터로 변환합니다.
  *
@@ -313,7 +336,7 @@ export function parseGEventsToLectures(events: any[]): CalendarLecture[] {
       return event.status !== 'cancelled'
         && summary.trimStart().startsWith('[G]')
         && typeof event.description === 'string'
-        && event.description.split(/\r?\n/).some((line: string) => line.trim() === GOOGLE_SYNC_SOURCE_MARKER)
+        && hasLumiSourceMarker(event.description)
         && Number.isFinite(created) && created >= Date.parse(GOOGLE_SYNC_CREATED_MIN)
         && typeof startRaw === 'string' && startRaw.slice(0, 10) >= GOOGLE_SYNC_START_DATE;
     })
