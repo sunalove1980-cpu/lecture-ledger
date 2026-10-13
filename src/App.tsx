@@ -25,11 +25,12 @@ import {
   Calendar as CalendarIcon,
   ListFilter,
   BarChart3,
+  Calculator,
 } from 'lucide-react';
 import { startOfMonth, endOfMonth, isWithinInterval, subMonths, format } from 'date-fns';
 import confetti from 'canvas-confetti';
 
-type TabId = 'home' | 'calendar' | 'list' | 'stats';
+type TabId = 'home' | 'calendar' | 'list' | 'stats' | 'annual';
 
 export const App: React.FC = () => {
   const [lectures, setLectures] = useState<Lecture[]>([]);
@@ -137,6 +138,7 @@ export const App: React.FC = () => {
     { id: 'calendar', label: '캘린더', icon: <CalendarIcon className="w-5 h-5" /> },
     { id: 'list', label: '목록', icon: <ListFilter className="w-5 h-5" /> },
     { id: 'stats', label: '통계', icon: <BarChart3 className="w-5 h-5" /> },
+    { id: 'annual', label: '연간 합계', icon: <Calculator className="w-5 h-5" /> },
   ];
 
   return (
@@ -174,7 +176,6 @@ export const App: React.FC = () => {
 
           {activeTab === 'home' && (
             <div className="mx-auto max-w-7xl px-4 py-5 sm:px-7 sm:py-8">
-              <YearToDateStats lectures={lectures} />
               <div className="mb-5 flex items-end justify-between sm:mb-7">
                 <div><p className="text-[10px] font-black tracking-[0.18em] text-[#89877e]">OVERVIEW</p><h1 className="mt-1 text-2xl font-black tracking-[-0.055em] sm:text-3xl">이번 달 강의 현황</h1></div>
                 <p className="hidden max-w-xs text-right text-xs leading-5 text-[#77766e] sm:block">수입과 정산, 강의 시간을<br/>한눈에 확인하세요.</p>
@@ -217,6 +218,13 @@ export const App: React.FC = () => {
                 onSelectMonth={setCurrentMonth}
               />
               <AgencyChart lectures={currentMonthLectures} />
+            </div>
+          )}
+
+          {activeTab === 'annual' && (
+            <div className="mx-auto max-w-7xl px-4 py-5 sm:px-7 sm:py-8">
+              <h1 className="mb-5 text-2xl font-black tracking-[-0.055em] sm:mb-7 sm:text-3xl">연간 합계</h1>
+              <YearToDateStats lectures={lectures} />
             </div>
           )}
 

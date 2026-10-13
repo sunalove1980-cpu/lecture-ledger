@@ -12,7 +12,7 @@ export const YearToDateStats: React.FC<{ lectures: readonly Lecture[] }> = ({ le
     const onVisible = () => {
       if (document.visibilityState === 'visible') updateToday();
     };
-    // Refresh an open home screen at Korea midnight, and after device sleep.
+    // Refresh an open annual summary at Korea midnight, and after device sleep.
     const nextMidnight = Date.parse(`${today}T00:00:00+09:00`) + 24 * 60 * 60 * 1000;
     const timer = window.setTimeout(updateToday, Math.max(0, nextMidnight - Date.now()) + 20);
     window.addEventListener('focus', updateToday);

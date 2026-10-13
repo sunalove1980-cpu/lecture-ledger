@@ -44,7 +44,7 @@ async function mount(t, component, props = {}) {
   return { dom, root };
 }
 
-test('home total ignores month navigation and list search; all storage bytes and keys survive', async t => {
+test('annual total appears only through the final menu, ignores month/search, and preserves storage', async t => {
   t.mock.timers.enable({ apis: ['Date'], now: new Date('2026-10-13T03:00:00Z') });
   const rows = [make('jan', '2026-01-01', 100.25, true), make('today', '2026-10-13', 200.5),
     make('tomorrow', '2026-10-14', 900), make('old', '2025-12-31', 900)];
@@ -54,7 +54,20 @@ test('home total ignores month navigation and list search; all storage bytes and
   const writes = [];
   globalThis.localStorage = { getItem: k => stored.get(k) ?? null,
     setItem: (...args) => writes.push(args), removeItem: (...args) => writes.push(args), clear: () => writes.push('clear') };
-  await mount(t, App);
+  const { root } = await mount(t, App);
+  const cardNode = () => document.querySelector('[aria-labelledby="year-to-date-title"]');
+  assert.equal(cardNode(), null);
+  assert.match(document.body.textContent, /이번 달 강의 현황/);
+  assert.doesNotMatch(document.body.textContent, /올해 누적 강의료|₩300.75/);
+  const annualButtons = [...document.querySelectorAll('button')].filter(b => /연간 합계$/.test(b.textContent));
+  assert.equal(annualButtons.length, 2);
+  for (const button of annualButtons) {
+    const labels = [...button.parentElement.querySelectorAll(':scope > button')]
+      .map(b => b.textContent.replace(/^0\d/, '').replace(/목록 \d+$/, '목록'));
+    assert.deepEqual(labels, ['홈', '캘린더', '목록', '통계', '연간 합계']);
+  }
+  // Both desktop and mobile controls open the same opt-in summary.
+  await act(async () => annualButtons[0].click());
   const card = () => document.querySelector('[aria-labelledby="year-to-date-title"]').textContent;
   const originalCard = card();
   assert.match(originalCard, /₩300.75/);
@@ -74,10 +87,19 @@ test('home total ignores month navigation and list search; all storage bytes and
     input.dispatchEvent(new window.Event('input', { bubbles: true }));
   });
   assert.match(document.body.textContent, /조건에 맞는 기록이 없습니다/);
+  assert.equal(cardNode(), null);
   await act(async () => [...document.querySelectorAll('button')].find(b => b.textContent === '홈').click());
+  assert.equal(cardNode(), null);
+  assert.doesNotMatch(document.body.textContent, /올해 누적 강의료|₩300.75/);
+  await act(async () => annualButtons[1].click());
   assert.equal(card(), originalCard);
   await act(async () => window.dispatchEvent(new window.Event('focus')));
   assert.equal(card(), originalCard);
+  // A fresh App mount (as on reload) must start at home, even after viewing totals.
+  await act(async () => root.render(null));
+  await act(async () => root.render(React.createElement(App)));
+  assert.equal(cardNode(), null);
+  assert.match(document.body.textContent, /이번 달 강의 현황/);
   assert.deepEqual(writes, []);
   assert.deepEqual(stored, original);
 });
