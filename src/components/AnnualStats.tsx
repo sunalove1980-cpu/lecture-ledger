@@ -1,10 +1,10 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import type { Lecture } from '../types/lecture';
-import { getKoreanToday, summarizeYearToDate } from '../services/yearToDate';
+import { getKoreanToday, summarizeAnnualTotals } from '../services/annualTotals';
 
 const won = (value: number) => `₩${value.toLocaleString('ko-KR')}`;
 
-export const YearToDateStats: React.FC<{ lectures: readonly Lecture[] }> = ({ lectures }) => {
+export const AnnualStats: React.FC<{ lectures: readonly Lecture[] }> = ({ lectures }) => {
   const [today, setToday] = useState(() => getKoreanToday());
 
   useEffect(() => {
@@ -24,15 +24,15 @@ export const YearToDateStats: React.FC<{ lectures: readonly Lecture[] }> = ({ le
     };
   }, [today]);
 
-  const summary = useMemo(() => summarizeYearToDate(lectures, today), [lectures, today]);
+  const summary = useMemo(() => summarizeAnnualTotals(lectures, today), [lectures, today]);
 
   return (
-    <section aria-labelledby="year-to-date-title" className="mb-6 border border-[#d4d0c4] bg-[#e9e4d7] p-5 sm:mb-8 sm:p-6">
+    <section aria-labelledby="annual-total-title" className="mb-6 border border-[#d4d0c4] bg-[#e9e4d7] p-5 sm:mb-8 sm:p-6">
       <div className="grid gap-5 md:grid-cols-2 md:items-end">
         <div className="min-w-0">
-          <h2 id="year-to-date-title" className="text-base font-black tracking-[-0.04em]">올해 누적 강의료</h2>
+          <h2 id="annual-total-title" className="text-base font-black tracking-[-0.04em]">올해 강의료 합계</h2>
           <p className="mt-1 text-xs leading-5 text-[#55564f]">
-            {summary.startDate.replaceAll('-', '.')} ~ {summary.endDate.replaceAll('-', '.')} · 오늘까지
+            {summary.startDate.replaceAll('-', '.')} ~ {summary.endDate.replaceAll('-', '.')} · 올해 전체
           </p>
           <p className="mt-3 break-all text-3xl font-black tracking-[-0.06em] sm:text-4xl">{won(summary.totalEarnings)}</p>
         </div>
@@ -47,7 +47,7 @@ export const YearToDateStats: React.FC<{ lectures: readonly Lecture[] }> = ({ le
           </div>
         </dl>
       </div>
-      <p className="mt-4 text-xs leading-5 text-[#55564f]">강의일 기준 · 한국 시간 · 미래 강의 제외 · 월 선택·검색과 무관</p>
+      <p className="mt-4 text-xs leading-5 text-[#55564f]">강의일 기준 · 한국 시간 · 예정 강의 포함 · 월 선택·검색과 무관</p>
       <p className="text-xs leading-5 text-[#55564f]">수령액·미입금액은 위 기간 강의의 현재 입금 상태 기준입니다.</p>
       {summary.invalidFeeCount > 0 && (
         <p className="mt-2 text-xs leading-5 text-[#9b513e]">금액을 확인할 수 없는 {summary.invalidFeeCount}건은 합계에서 제외했습니다.</p>

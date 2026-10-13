@@ -1,39 +1,48 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { getKoreanToday, summarizeYearToDate } from '../src/services/yearToDate.ts';
+import { getKoreanToday, summarizeAnnualTotals } from '../src/services/annualTotals.ts';
 import { parseGEventsToLectures } from '../src/services/googleCalendar.ts';
 import { appendCalendarLectures } from '../src/services/storage.ts';
 
 const lecture = (date, totalFee, isPaid = false, extra = {}) => ({ date, totalFee, isPaid, ...extra });
 
-test('includes Jan 1 and all of today; excludes tomorrow, later this year and other years', () => {
-  const result = summarizeYearToDate([
+test('includes Jan 1 through Dec 31, including future lectures; excludes other years', () => {
+  const result = summarizeAnnualTotals([
     lecture('2025-12-31', 900), lecture('2026-01-01', 100, true),
     lecture('2026-10-13', 200, false, { startTime: '23:00' }),
     lecture('2026-10-14', 900), lecture('2026-12-31', 900, true), lecture('2027-01-01', 900),
   ], '2026-10-13');
   assert.deepEqual(result, {
-    startDate: '2026-01-01', endDate: '2026-10-13', totalEarnings: 300,
-    paidEarnings: 100, pendingEarnings: 200, invalidFeeCount: 0,
+    startDate: '2026-01-01', endDate: '2026-12-31', totalEarnings: 2100,
+    paidEarnings: 1000, pendingEarnings: 1100, invalidFeeCount: 0,
   });
 });
 
-test('empty year is zero; Dec 31 includes the whole completed year', () => {
-  assert.equal(summarizeYearToDate([], '2026-01-01').totalEarnings, 0);
-  assert.equal(summarizeYearToDate([lecture('2026-12-31', 100)], '2026-12-31').totalEarnings, 100);
+test('empty year is zero; even Jan 1 includes all scheduled lectures through Dec 31', () => {
+  assert.equal(summarizeAnnualTotals([], '2026-01-01').totalEarnings, 0);
+  const rows = [lecture('2026-12-31', 100)];
+  const expected = summarizeAnnualTotals(rows, '2026-01-01');
+  assert.equal(expected.totalEarnings, 100);
+  assert.deepEqual(summarizeAnnualTotals(rows, '2026-10-13'), expected);
+  assert.deepEqual(summarizeAnnualTotals(rows, '2026-12-31'), expected);
 });
 
 test('Korean midnight and year rollover are independent of the browser timezone', () => {
   for (const zone of ['UTC', 'Asia/Seoul', 'America/Los_Angeles']) {
     const source = `
       import assert from 'node:assert/strict';
-      import { getKoreanToday, summarizeYearToDate } from './src/services/yearToDate.ts';
+      import { getKoreanToday, summarizeAnnualTotals } from './src/services/annualTotals.ts';
       assert.equal(getKoreanToday(new Date('2026-12-31T14:59:59.999Z')), '2026-12-31');
       assert.equal(getKoreanToday(new Date('2026-12-31T15:00:00.000Z')), '2027-01-01');
       assert.equal(getKoreanToday(new Date('2026-10-12T15:00:00Z')), '2026-10-13');
-      const rows = [{ date: '2026-12-31', totalFee: 100 }, { date: '2027-01-01', totalFee: 200 }];
-      assert.equal(summarizeYearToDate(rows, getKoreanToday(new Date('2026-12-31T15:00:00Z'))).totalEarnings, 200);
+      const rows = [{ date: '2026-12-31', totalFee: 100 }, { date: '2027-01-01', totalFee: 200 },
+        { date: '2027-12-31', totalFee: 300 }, { date: '2028-01-01', totalFee: 900 }];
+      assert.equal(summarizeAnnualTotals(rows, getKoreanToday(new Date('2026-12-31T14:59:59.999Z'))).totalEarnings, 100);
+      const nextYear = summarizeAnnualTotals(rows, getKoreanToday(new Date('2026-12-31T15:00:00Z')));
+      assert.equal(nextYear.totalEarnings, 500);
+      assert.equal(nextYear.startDate, '2027-01-01');
+      assert.equal(nextYear.endDate, '2027-12-31');
     `;
     const result = spawnSync(process.execPath, ['--experimental-strip-types', '--input-type=module', '-e', source], {
       cwd: new URL('..', import.meta.url), env: { ...process.env, TZ: zone }, encoding: 'utf8',
@@ -46,8 +55,8 @@ test('Korean midnight and year rollover are independent of the browser timezone'
 test('valid leap days count; invalid and non-date strings do not normalize into the period', () => {
   const rows = ['2024-02-29', '2024-02-30', '2024-04-31', '2024-00-01', '2024-13-01',
     '2024-1-01', '2024-01-01T00:00:00Z', 'invalid', '', null, undefined].map(date => lecture(date, 100));
-  assert.equal(summarizeYearToDate(rows, '2024-12-31').totalEarnings, 100);
-  assert.equal(summarizeYearToDate([lecture('2026-02-29', 100)], '2026-12-31').totalEarnings, 0);
+  assert.equal(summarizeAnnualTotals(rows, '2024-12-31').totalEarnings, 100);
+  assert.equal(summarizeAnnualTotals([lecture('2026-02-29', 100)], '2026-12-31').totalEarnings, 0);
 });
 
 test('uses lecture date and current payment flag, never payment or creation date', () => {
@@ -57,14 +66,14 @@ test('uses lecture date and current payment flag, never payment or creation date
     lecture('2025-12-31', 100, true, { paidDate: '2026-01-01' }),
     lecture('2026-12-31', 100, true, { paidDate: '2026-01-01' }),
   ];
-  const result = summarizeYearToDate(rows, '2026-10-13');
-  assert.equal(result.paidEarnings, 10);
+  const result = summarizeAnnualTotals(rows, '2026-10-13');
+  assert.equal(result.paidEarnings, 110);
   assert.equal(result.pendingEarnings, 20);
-  assert.equal(result.totalEarnings, 30);
+  assert.equal(result.totalEarnings, 130);
 });
 
 test('preserves legacy decimals, zero and signed amounts without Calendar integer validation', () => {
-  const result = summarizeYearToDate([
+  const result = summarizeAnnualTotals([
     lecture('2026-01-01', 100.25, true), lecture('2026-01-01', 50.5),
     lecture('2026-01-01', -10), lecture('2026-01-01', 0),
   ], '2026-10-13');
@@ -76,8 +85,8 @@ test('preserves legacy decimals, zero and signed amounts without Calendar intege
 
 test('malformed fees are disclosed and excluded without string coercion or NaN poisoning', () => {
   const invalid = [NaN, Infinity, -Infinity, undefined, null, '100', '', '미정', {}, true];
-  const rows = invalid.map(fee => lecture('2026-01-01', fee));
-  const result = summarizeYearToDate([...rows, lecture('2026-01-01', 25.5), lecture('2027-01-01', 'bad')], '2026-10-13');
+  const rows = invalid.map(fee => lecture('2026-12-31', fee));
+  const result = summarizeAnnualTotals([...rows, lecture('2026-01-01', 25.5), lecture('2027-01-01', 'bad')], '2026-10-13');
   assert.equal(result.totalEarnings, 25.5);
   assert.equal(result.invalidFeeCount, invalid.length);
 });
@@ -91,7 +100,7 @@ test('summary is read-only, including notes, payment dates, unknown fields and o
   Object.freeze(rows[0].extra);
   rows.forEach(Object.freeze);
   Object.freeze(rows);
-  summarizeYearToDate(rows, '2026-10-13');
+  summarizeAnnualTotals(rows, '2026-10-13');
   assert.equal(JSON.stringify(rows), before);
 });
 

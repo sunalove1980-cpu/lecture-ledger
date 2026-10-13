@@ -12,7 +12,7 @@ import { exportToCsv } from './services/exportCsv';
 import type { Lecture, GoogleCalendarConfig } from './types/lecture';
 import { Header } from './components/Header';
 import { DashboardStats } from './components/DashboardStats';
-import { YearToDateStats } from './components/YearToDateStats';
+import { AnnualStats } from './components/AnnualStats';
 import { MonthlyChart } from './components/MonthlyChart';
 import { AgencyChart } from './components/AgencyChart';
 import { LectureCalendar } from './components/LectureCalendar';
@@ -224,7 +224,7 @@ export const App: React.FC = () => {
           {activeTab === 'annual' && (
             <div className="mx-auto max-w-7xl px-4 py-5 sm:px-7 sm:py-8">
               <h1 className="mb-5 text-2xl font-black tracking-[-0.055em] sm:mb-7 sm:text-3xl">연간 합계</h1>
-              <YearToDateStats lectures={lectures} />
+              <AnnualStats lectures={lectures} />
             </div>
           )}
 

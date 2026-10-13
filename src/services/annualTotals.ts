@@ -17,15 +17,17 @@ function isCalendarDate(value: string): boolean {
 }
 
 // Read-only projection of the complete ledger. Never use the selected month's
-// records or paidDate: this is earned lecture fees by lecture date, not cash flow.
-export function summarizeYearToDate(lectures: readonly Lecture[], today: string) {
+// records or paidDate: include all recorded fees by lecture date in the current
+// Korean year, including future scheduled lectures, rather than cash flow.
+export function summarizeAnnualTotals(lectures: readonly Lecture[], today: string) {
   const startDate = `${today.slice(0, 4)}-01-01`;
+  const endDate = `${today.slice(0, 4)}-12-31`;
   let paidEarnings = 0;
   let pendingEarnings = 0;
   let invalidFeeCount = 0;
 
   for (const lecture of lectures) {
-    if (!isCalendarDate(lecture.date) || lecture.date < startDate || lecture.date > today) continue;
+    if (!isCalendarDate(lecture.date) || lecture.date < startDate || lecture.date > endDate) continue;
     // Preserve finite legacy amounts, including decimals and signed adjustments.
     // Do not coerce malformed values or apply the Calendar import's integer rule
     // retroactively to saved records. The UI discloses excluded fees.
@@ -37,5 +39,5 @@ export function summarizeYearToDate(lectures: readonly Lecture[], today: string)
     else pendingEarnings += lecture.totalFee;
   }
 
-  return { startDate, endDate: today, totalEarnings: paidEarnings + pendingEarnings, paidEarnings, pendingEarnings, invalidFeeCount };
+  return { startDate, endDate, totalEarnings: paidEarnings + pendingEarnings, paidEarnings, pendingEarnings, invalidFeeCount };
 }
