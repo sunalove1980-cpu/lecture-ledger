@@ -12,6 +12,7 @@ import { exportToCsv } from './services/exportCsv';
 import type { Lecture, GoogleCalendarConfig } from './types/lecture';
 import { Header } from './components/Header';
 import { DashboardStats } from './components/DashboardStats';
+import { YearToDateStats } from './components/YearToDateStats';
 import { MonthlyChart } from './components/MonthlyChart';
 import { AgencyChart } from './components/AgencyChart';
 import { LectureCalendar } from './components/LectureCalendar';
@@ -173,6 +174,7 @@ export const App: React.FC = () => {
 
           {activeTab === 'home' && (
             <div className="mx-auto max-w-7xl px-4 py-5 sm:px-7 sm:py-8">
+              <YearToDateStats lectures={lectures} />
               <div className="mb-5 flex items-end justify-between sm:mb-7">
                 <div><p className="text-[10px] font-black tracking-[0.18em] text-[#89877e]">OVERVIEW</p><h1 className="mt-1 text-2xl font-black tracking-[-0.055em] sm:text-3xl">이번 달 강의 현황</h1></div>
                 <p className="hidden max-w-xs text-right text-xs leading-5 text-[#77766e] sm:block">수입과 정산, 강의 시간을<br/>한눈에 확인하세요.</p>
