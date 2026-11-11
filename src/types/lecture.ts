@@ -7,7 +7,7 @@ export interface Lecture {
   date: string;           // 강의 날짜 (YYYY-MM-DD)
   startTime: string;      // 시작 시간 (HH:mm)
   endTime: string;        // 종료 시간 (HH:mm)
-  durationHours: number;  // 총 강의 시간 (시간 단위)
+  durationHours: number;  // 총 강의 시간 (시간 단위 저장, 분 입력은 / 60)
   totalFee: number;       // 강의료 (원화)
   isPaid: boolean;        // 입금 완료 여부
   paidDate?: string;      // 입금 확인 일자 (YYYY-MM-DD)
@@ -52,3 +52,4 @@ export interface GoogleCalendarConfig {
   userEmail?: string;
   accessToken?: string;
 }
+

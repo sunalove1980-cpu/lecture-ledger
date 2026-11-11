@@ -1,3 +1,4 @@
+import { formatDuration } from '../services/duration';
 import React, { useState } from 'react';
 import { 
   format, 
@@ -250,7 +251,7 @@ export const LectureCalendar: React.FC<LectureCalendarProps> = ({
                     </div>
 
                     <div className="flex items-center justify-between text-[11px] text-gray-500 pt-1 border-t border-gray-100">
-                      <span>{lec.startTime}~{lec.endTime} ({lec.durationHours}h)</span>
+                      <span>{lec.startTime}~{lec.endTime} ({formatDuration(lec.durationHours)})</span>
                       <span className="font-bold text-blue-600">
                         ₩ {lec.totalFee.toLocaleString('ko-KR')}
                       </span>
@@ -266,3 +267,4 @@ export const LectureCalendar: React.FC<LectureCalendarProps> = ({
     </div>
   );
 };
+

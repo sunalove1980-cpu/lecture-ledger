@@ -13,6 +13,7 @@ import {
 import type { Lecture, LocationType } from '../types/lecture';
 import { POPULAR_AGENCIES } from '../services/storage';
 import { VoiceTranscriber } from './VoiceTranscriber';
+import { durationBetweenTimes, feeForMinutes, hoursToMinutes, isValidDuration, minutesToHours } from '../services/duration';
 
 interface LectureModalProps {
   isOpen: boolean;
@@ -36,7 +37,14 @@ export const LectureModal: React.FC<LectureModalProps> = ({
   const [date, setDate] = useState('');
   const [startTime, setStartTime] = useState('10:00');
   const [endTime, setEndTime] = useState('17:00');
-  const [durationHours, setDurationHours] = useState<number>(6);
+  const [durationWholeHours, setDurationWholeHours] = useState<number | string>(6);
+  const [durationRemainderMinutes, setDurationRemainderMinutes] = useState<number | string>(0);
+  const durationMinutes = Number(durationWholeHours) * 60 + Number(durationRemainderMinutes);
+  const setDurationMinutes = (minutes: number) => {
+    setDurationWholeHours(Math.floor(minutes / 60));
+    setDurationRemainderMinutes(minutes % 60);
+  };
+  const [durationError, setDurationError] = useState('');
   const [totalFee, setTotalFee] = useState<number>(1000000);
   const [hourlyRate, setHourlyRate] = useState<number>(200000);
   const [feeMode, setFeeMode] = useState<'total' | 'hourly'>('total');
@@ -58,28 +66,15 @@ export const LectureModal: React.FC<LectureModalProps> = ({
     ? Math.round((selectedScores.reduce((sum, score) => sum + score, 0) / selectedScores.length) * 10) / 10
     : null;
 
-  const calculateDuration = (start: string, end: string) => {
-    try {
-      const [sh, sm] = start.split(':').map(Number);
-      const [eh, em] = end.split(':').map(Number);
-      const diff = (eh * 60 + em) - (sh * 60 + sm);
-      if (diff > 0) {
-        return Math.round((diff / 60) * 10) / 10;
-      }
-      return 1;
-    } catch {
-      return 1;
-    }
-  };
-
   useEffect(() => {
+    setDurationError('');
     if (initialLecture) {
       setTitle(initialLecture.title || '');
       setAgency(initialLecture.agency || '');
       setDate(initialLecture.date || new Date().toISOString().split('T')[0]);
       setStartTime(initialLecture.startTime || '10:00');
       setEndTime(initialLecture.endTime || '17:00');
-      setDurationHours(initialLecture.durationHours || 6);
+      setDurationMinutes(hoursToMinutes(initialLecture.durationHours || 6));
       setTotalFee(initialLecture.totalFee || 0);
       setIsPaid(initialLecture.isPaid || false);
       setLocationType(initialLecture.locationType || 'online');
@@ -99,7 +94,8 @@ export const LectureModal: React.FC<LectureModalProps> = ({
       setDate(todayStr);
       setStartTime('10:00');
       setEndTime('17:00');
-      setDurationHours(6);
+      setDurationMinutes(360);
+      setFeeMode('total');
       setTotalFee(1000000);
       setHourlyRate(200000);
       setIsPaid(false);
@@ -116,27 +112,34 @@ export const LectureModal: React.FC<LectureModalProps> = ({
     }
   }, [initialLecture, defaultDate, isOpen, isGoogleConnected]);
 
+  const handleDurationPartsChange = (hours: number | string, minutes: number | string) => {
+    setDurationWholeHours(hours);
+    setDurationRemainderMinutes(minutes);
+    setDurationError('');
+    if (feeMode === 'hourly') setTotalFee(feeForMinutes(hourlyRate, Number(hours) * 60 + Number(minutes)));
+  };
+
+  const handleDurationChange = (minutes: number) => {
+    setDurationMinutes(minutes);
+    setDurationError('');
+    if (feeMode === 'hourly') setTotalFee(feeForMinutes(hourlyRate, minutes));
+  };
+
   const handleStartTimeChange = (newStart: string) => {
     setStartTime(newStart);
-    const newDur = calculateDuration(newStart, endTime);
-    setDurationHours(newDur);
-    if (feeMode === 'hourly') {
-      setTotalFee(Math.round(hourlyRate * newDur));
-    }
+    const minutes = durationBetweenTimes(newStart, endTime);
+    if (minutes !== null) handleDurationChange(minutes);
   };
 
   const handleEndTimeChange = (newEnd: string) => {
     setEndTime(newEnd);
-    const newDur = calculateDuration(startTime, newEnd);
-    setDurationHours(newDur);
-    if (feeMode === 'hourly') {
-      setTotalFee(Math.round(hourlyRate * newDur));
-    }
+    const minutes = durationBetweenTimes(startTime, newEnd);
+    if (minutes !== null) handleDurationChange(minutes);
   };
 
   const handleHourlyRateChange = (rate: number) => {
     setHourlyRate(rate);
-    setTotalFee(Math.round(rate * durationHours));
+    setTotalFee(feeForMinutes(rate, durationMinutes));
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -150,6 +153,14 @@ export const LectureModal: React.FC<LectureModalProps> = ({
       return;
     }
 
+    if (durationWholeHours === '' || durationRemainderMinutes === ''
+      || !Number.isSafeInteger(Number(durationWholeHours)) || Number(durationWholeHours) < 0
+      || !Number.isInteger(Number(durationRemainderMinutes)) || Number(durationRemainderMinutes) < 0
+      || Number(durationRemainderMinutes) > 59 || !isValidDuration(durationMinutes)) {
+      setDurationError('강의 시간은 1분 이상, 분 단위로 입력해 주세요.');
+      return;
+    }
+
     onSave(
       {
         id: initialLecture?.id,
@@ -158,7 +169,7 @@ export const LectureModal: React.FC<LectureModalProps> = ({
         date,
         startTime,
         endTime,
-        durationHours: Number(durationHours) || 1,
+        durationHours: minutesToHours(durationMinutes),
         totalFee: Number(totalFee) || 0,
         isPaid,
         locationType,
@@ -315,7 +326,7 @@ export const LectureModal: React.FC<LectureModalProps> = ({
                   type="button"
                   onClick={() => {
                     setFeeMode('hourly');
-                    setTotalFee(Math.round(hourlyRate * durationHours));
+                    setTotalFee(feeForMinutes(hourlyRate, durationMinutes));
                   }}
                   className={`px-2 py-0.5 rounded transition-all ${
                     feeMode === 'hourly' ? 'bg-gray-900 text-white shadow-sm' : 'text-gray-600 hover:text-gray-900'
@@ -328,21 +339,36 @@ export const LectureModal: React.FC<LectureModalProps> = ({
 
             <div className="grid grid-cols-2 gap-2.5">
               <div>
-                <label className="block text-[11px] font-semibold text-gray-600 mb-0.5">
-                  총 강의 시간 (시간)
-                </label>
-                <input
-                  type="number"
-                  step="0.5"
-                  min="0.5"
-                  value={durationHours}
-                  onChange={(e) => {
-                    const d = Number(e.target.value);
-                    setDurationHours(d);
-                    if (feeMode === 'hourly') setTotalFee(Math.round(hourlyRate * d));
-                  }}
-                  className="w-full px-2.5 py-1.5 bg-white border border-gray-200 rounded-xl text-xs font-bold text-gray-900 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-                />
+                <span className="block text-[11px] font-semibold text-gray-600 mb-0.5">
+                  총 강의 시간
+                </span>
+                <div className="flex items-center gap-1">
+                  <input
+                    aria-label="총 강의 시간 (시간)"
+                    type="number"
+                    required
+                    step="1"
+                    min="0"
+                    value={durationWholeHours}
+                    onChange={(e) => handleDurationPartsChange(e.target.value, durationRemainderMinutes)}
+                    className="min-w-0 w-full px-2 py-1.5 bg-white border border-gray-200 rounded-xl text-xs font-bold text-gray-900 focus:outline-none focus:border-blue-500"
+                  />
+                  <span className="shrink-0 text-[11px] text-gray-600">시간</span>
+                  <input
+                    aria-label="총 강의 시간 (분)"
+                    type="number"
+                    required
+                    step="1"
+                    min="0"
+                    max="59"
+                    value={durationRemainderMinutes}
+                    onChange={(e) => handleDurationPartsChange(durationWholeHours, e.target.value)}
+                    className="min-w-0 w-full px-2 py-1.5 bg-white border border-gray-200 rounded-xl text-xs font-bold text-gray-900 focus:outline-none focus:border-blue-500"
+                  />
+                  <span className="shrink-0 text-[11px] text-gray-600">분</span>
+                </div>
+                <p className="mt-1 text-[10px] text-gray-500">1분부터 입력할 수 있어요.</p>
+                {durationError && <p role="alert" className="mt-1 text-[11px] text-red-600">{durationError}</p>}
               </div>
 
               {feeMode === 'hourly' ? (
@@ -352,7 +378,7 @@ export const LectureModal: React.FC<LectureModalProps> = ({
                   </label>
                   <input
                     type="number"
-                    step="10000"
+                    step="1"
                     value={hourlyRate}
                     onChange={(e) => handleHourlyRateChange(Number(e.target.value))}
                     className="w-full px-2.5 py-1.5 bg-white border border-gray-200 rounded-xl text-xs font-bold text-gray-900 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
@@ -365,7 +391,7 @@ export const LectureModal: React.FC<LectureModalProps> = ({
                   </label>
                   <input
                     type="number"
-                    step="10000"
+                    step="1"
                     value={totalFee}
                     onChange={(e) => setTotalFee(Number(e.target.value))}
                     className="w-full px-2.5 py-1.5 bg-white border border-gray-200 rounded-xl text-xs font-bold text-blue-600 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
@@ -552,3 +578,4 @@ export const LectureModal: React.FC<LectureModalProps> = ({
     </div>
   );
 };
+

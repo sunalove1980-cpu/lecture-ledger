@@ -1,3 +1,4 @@
+import { formatDuration } from '../services/duration';
 import React from 'react';
 import { ResponsiveContainer, PieChart, Pie, Cell, Tooltip } from 'recharts';
 import { Building2 } from 'lucide-react';
@@ -138,7 +139,7 @@ export const AgencyChart: React.FC<AgencyChartProps> = ({ lectures }) => {
                     {stat.agency}
                   </div>
                   <div className="text-[10px] text-gray-400">
-                    {stat.lectureCount}회 · {stat.totalHours}시간
+                    {stat.lectureCount}회 · {formatDuration(stat.totalHours)}
                   </div>
                 </div>
               </div>
@@ -159,3 +160,4 @@ export const AgencyChart: React.FC<AgencyChartProps> = ({ lectures }) => {
     </div>
   );
 };
+
